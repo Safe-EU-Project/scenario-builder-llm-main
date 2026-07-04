@@ -1,0 +1,311 @@
+DOCUMENT: SAFE Platform — Threat Profiles for Law Enforcement Agency Training Scenarios
+SOURCE: SAFE project threat intelligence corpus — APT29 STIX bundle, Salt Typhoon STIX bundle, Europol IOCTA, ENISA Threat Landscape 2024
+PURPOSE: Authoritative threat profile reference for SAFE scenario generation — defines the cyber threats most relevant to LEAs and how they manifest in law enforcement environments
+
+CRITICAL NOTE FOR SCENARIO GENERATION: All scenarios generated for the SAFE platform must reflect threats that are realistic and operationally relevant for European Law Enforcement Agencies. The threats described here are based on actual documented campaigns and Europol intelligence. Use these threat profiles to ground generated scenarios in real-world adversary behaviour.
+
+=============================================================================
+SAFE THREAT CATEGORY 1: NATION-STATE ADVANCED PERSISTENT THREATS (APTs)
+=============================================================================
+
+These threats target LEA infrastructure to steal criminal intelligence, disrupt operations, or compromise investigations.
+
+--- THREAT PROFILE: APT29 / NOBELIUM / SVR Russia ---
+
+Aliases: Cozy Bear, Midnight Blizzard, The Dukes
+Sponsoring State: Russian Federation — Foreign Intelligence Service (SVR)
+Primary Targets: Government agencies, law enforcement, defence, think tanks, diplomatic missions
+STIX Bundle: apt29-solarwinds-stix-bundle.json (SAFE threat intelligence corpus)
+
+Key Campaigns:
+- SolarWinds Orion Supply Chain Compromise (2020) — SUNBURST backdoor in trojanized DLL update
+- Microsoft OAUTH / Teams spear-phishing (2023-2024) — credential theft via device code phishing
+- Golden SAML — AD FS token forgery to bypass cloud authentication (T1606.002)
+
+Known Malware:
+- SUNBURST: Trojanized SolarWinds DLL with C2 via DNS beaconing to avsvmcloud.com
+- TEARDROP: Cobalt Strike loader disguised as .jpg file (gracious_truth.jpg)
+- GoldMax: Python-based backdoor with C2 via legitimate cloud services (GitHub, OneDrive)
+- Cobalt Strike BEACON: Commercial C2 framework used post-exploitation
+
+Key IOCs (from APT29 STIX bundle):
+- File hash MD5: b91ce2fa41029f6955bff20079468448 (SUNBURST DLL)
+- File hash SHA-256: ce77d116a074dab7a22a0fd4f2c1ab475f16eec42e1ded3c0b0aa8211fe858d6
+- C2 Domain: avsvmcloud.com (DGA — sinkholed December 2020)
+- C2 IPs: 13.59.205.66, 54.193.127.66
+- Dropper file: C:\Windows\SysWOW64\gracious_truth.jpg
+- Named pipe (mutex): 583da945-62af-10e8-4902-a8f205c72b2e
+
+MITRE ATT&CK Techniques:
+- T1195.002 — Supply Chain Compromise
+- T1553.002 — Code Signing (abused valid SolarWinds certificate)
+- T1071.004 — DNS Command and Control (DGA beaconing)
+- T1606.002 — Golden SAML (AD FS token forgery)
+- T1098.001 — Azure AD backdoor (unauthorized Service Principal)
+- T1003.006 — DCSync (credential extraction from Domain Controller)
+- T1114.002 — Remote Email Collection (Exchange)
+- T1036.005 — Masquerading as legitimate file
+- T1562.001 — Disable security tools via registry
+- T1070.004 — Evidence removal (SDelete)
+- T1560.001 — Archive data for exfiltration (7-Zip)
+- T1027 — Obfuscation (BEACON HTTP masquerade)
+
+LEA-Specific Impact:
+- Access to criminal intelligence databases and ongoing investigation files
+- Compromise of informant/witness protection records
+- Lateral movement via compromised AD to all domain-joined systems
+- Golden SAML enables access to all Office 365/Azure resources
+- DCSync gives full Active Directory credential dump — all user accounts compromised
+
+Typical Attack Timeline for SAFE Scenarios:
+T+0:     EDR hash alert fires on SolarWinds Orion server
+T+5min:  SIEM correlates — APT29 attribution confirmed
+T+30min: DNS C2 beaconing discovered — 847 queries over 14 days
+T+45min: TEARDROP dropper found — Cobalt Strike BEACON suspected in memory
+T+60min: Network isolation — evidence preservation — CISO notified
+T+2h:    GDPR / NIS2 assessment — Europol EC3 notification initiated
+
+--- THREAT PROFILE: Salt Typhoon / GhostEmperor ---
+
+Aliases: Salt Typhoon, FamousSparrow, GhostEmperor
+Sponsoring State: People's Republic of China — Ministry of State Security (MSS)
+Primary Targets: Telecommunications operators, ISPs, government agencies, LEAs
+STIX Bundle: salt-typhoon-stix-bundle.json (SAFE threat intelligence corpus)
+
+Key Campaigns:
+- Telecom ISP infiltration (2023-2024) — persistent access to core telecom infrastructure
+- Lawful intercept system compromise — access to government-ordered surveillance data
+- Network device exploitation — Cisco IOS vulnerabilities (CVE-2023-20198)
+
+Key Techniques:
+- Exploitation of network appliances (routers, switches) as initial access
+- Living-off-the-land — minimal custom malware, uses built-in network tools
+- Compromise of lawful intercept (CALEA) systems — gaining access to wiretap data
+- Persistent implants on carrier-grade routers
+- Exfiltration via encrypted channels mimicking legitimate traffic
+
+MITRE ATT&CK Techniques:
+- T1190 — Exploit Public-Facing Application (CVE-2023-20198)
+- T1078.004 — Valid Accounts: Cloud Accounts
+- T1572 — Protocol Tunneling
+- T1048 — Exfiltration over Alternative Protocol
+- T1598.003 — Phishing for Information: Spearphishing Link
+
+LEA-Specific Impact:
+- Access to wiretap orders and surveillance data — compromise of ongoing investigations
+- Exposure of intelligence collection methods and sources
+- Access to real-time communication metadata of criminal suspects
+- Supply chain risk via compromised telecom providers used by LEAs
+
+=============================================================================
+SAFE THREAT CATEGORY 2: RANSOMWARE AGAINST LEA INFRASTRUCTURE
+=============================================================================
+
+Ransomware attacks against law enforcement are increasing — criminal groups deliberately target LEAs to disrupt operations, destroy evidence, or extort sensitive data.
+
+--- THREAT PROFILE: LockBit 3.0 (LEA-Targeting Ransomware) ---
+
+Group Type: Ransomware-as-a-Service (RaaS) criminal group
+Notable LEA Incidents: Multiple police agencies across EU (2022-2024), including attempts to exfiltrate criminal databases
+
+Attack Vector: Spear-phishing, exploitation of unpatched VPN (Fortinet, Pulse Secure, Citrix), or RDP brute force
+Initial Access: Valid credentials obtained via info-stealer malware or credential leak databases
+Persistence: Scheduled tasks, registry run keys
+Lateral Movement: PsExec, WMI, RDP, NTLM relay
+Pre-Encryption: Data exfiltration to Mega.nz or Tor-based infrastructure (double extortion)
+Encryption: Intermittent encryption (encrypts partial files — faster, harder to detect)
+
+Key Indicators:
+- File extension: .lockbit (encrypted files)
+- Ransom note: HLjkNskOq.README.txt
+- C2 infrastructure: Tor hidden services
+- Lateral movement: net use, PsExec with domain admin credentials
+- Pre-exfil tool: Rclone configured for Mega.nz
+
+LEA-Specific Consequences:
+- Encryption of case management systems — loss of active case files
+- Disruption of dispatch and emergency response systems
+- Threat to publish stolen criminal investigation data publicly
+- Loss of digital evidence if backup systems also compromised
+
+MITRE ATT&CK Techniques:
+- T1566.001 — Phishing: Spearphishing Attachment (initial access)
+- T1190 — Exploit Public-Facing Application (VPN CVEs)
+- T1078 — Valid Accounts (stolen credentials)
+- T1021.001 — Remote Services: RDP
+- T1486 — Data Encrypted for Impact
+- T1041 — Exfiltration over C2 Channel
+- T1489 — Service Stop (killing backup agents, VSS, AV)
+- T1490 — Inhibit System Recovery (delete shadow copies)
+
+Typical Attack Timeline for SAFE Scenarios:
+T+0:     SIEM alert — unusual authentication pattern detected (VPN login from foreign IP)
+T+30min: Threat hunting reveals lateral movement — PsExec activity on multiple hosts
+T+1h:    VSS (shadow copies) deletion detected — ransomware deployment imminent
+T+2h:    First encrypted files found — ransom note deployed
+T+3h:    Containment — network segmentation — activation of business continuity
+T+4h:    GDPR notification assessment — likely personal data of criminal suspects encrypted
+T+24h:   Decision point: negotiate / restore from backup / engage IR firm
+
+=============================================================================
+SAFE THREAT CATEGORY 3: INSIDER THREATS
+=============================================================================
+
+--- THREAT PROFILE: Malicious LEA Insider ---
+
+Motivation: Financial gain, ideological alignment with criminal groups, coercion by organised crime
+Targets: Criminal intelligence databases, ongoing undercover operation files, informant identities, witness protection records, case evidence
+
+Typical Indicators:
+- Unusual access hours (after hours, weekends)
+- Large volume downloads from case management systems
+- Access to files outside officer's case assignment
+- USB device usage in restricted environments
+- Email forwarding rules to personal/external accounts
+
+Attack Patterns:
+- Direct database queries exporting large datasets
+- Screenshot/photo of classified screen content
+- Exfiltration via personal cloud storage (Google Drive, Dropbox)
+- Selling access credentials to organised crime groups
+- Deliberate deletion or modification of digital evidence
+
+MITRE ATT&CK Techniques:
+- T1078 — Valid Accounts (legitimate insider credentials)
+- T1048.003 — Exfiltration over Alternative Protocol (cloud storage)
+- T1114.001 — Email Collection: Local Email Collection
+- T1052.001 — Exfiltration over Physical Medium (USB)
+- T1565.001 — Data Manipulation: Stored Data Manipulation (evidence tampering)
+
+LEA-Specific Consequences:
+- Compromise of ongoing criminal investigations
+- Risk to informant and witness safety
+- Evidence admissibility challenges
+- Serious regulatory violations (GDPR, EU LED 2016/680)
+
+=============================================================================
+SAFE THREAT CATEGORY 4: PHISHING AND SOCIAL ENGINEERING AGAINST LEA OFFICERS
+=============================================================================
+
+--- THREAT PROFILE: LEA-Targeted Spear-Phishing ---
+
+Target: Individual LEA officers, particularly those handling sensitive investigations, cyber units, international liaison officers
+
+Common Lures:
+- Europol / Interpol themed emails requesting urgent case information
+- Fake court summons or legal documents
+- Impersonation of IT helpdesk requesting VPN credential reset
+- Conference/training invitations with malicious attachments
+- Fake software updates (VPN client, EDR agent)
+
+Delivery Methods:
+- Malicious attachment: .docx with macros, .pdf with embedded exploit, .iso/.zip bypass
+- Malicious link: credential harvesting page impersonating Office 365, Keycloak, or LEA portal
+- Business Email Compromise (BEC): Impersonation of senior officer requesting wire transfer or data extraction
+
+Post-Compromise Actions:
+- Credential harvesting → lateral movement via valid credentials
+- Installation of remote access tool (RAT) or info-stealer
+- Access to case files via compromised officer's session
+
+MITRE ATT&CK Techniques:
+- T1566.001 — Spearphishing Attachment
+- T1566.002 — Spearphishing Link
+- T1598.003 — Phishing for Information
+- T1204.002 — User Execution: Malicious File
+- T1539 — Steal Web Session Cookie
+
+=============================================================================
+SAFE THREAT CATEGORY 5: SUPPLY CHAIN AND THIRD-PARTY RISK
+=============================================================================
+
+--- THREAT PROFILE: Managed Service Provider (MSP) Compromise ---
+
+Attack Vector: Compromise of an IT provider or software vendor that has privileged access to LEA systems
+Notable Examples: SolarWinds (APT29), Kaseya VSA (REvil ransomware), MOVEit Transfer (Cl0p)
+
+Typical Attack:
+1. Threat actor compromises the MSP/vendor through separate means
+2. Uses MSP's trusted access (VPN, RMM tools, SFTP) to reach LEA systems
+3. Deploys backdoor or ransomware via the trusted channel — bypasses perimeter controls
+4. Victim LEA has no direct visibility until impact is felt
+
+Key Indicators:
+- Unusual activity from MSP admin accounts outside business hours
+- Large data transfers via MSP's SFTP or cloud sync tools
+- RMM tool (ConnectWise, Kaseya, N-able) executing unexpected commands
+- New scheduled tasks or services created by MSP service account
+
+LEA-Specific Risk:
+- MSPs often have privileged access to case management, CCTV, biometric systems
+- Vendor accounts typically have high privileges and bypass MFA
+- Third-party access logs often not reviewed regularly
+
+=============================================================================
+THREAT INTELLIGENCE INTEGRATION FOR SCENARIO GENERATION
+=============================================================================
+
+When generating SAFE scenarios, the LLM should:
+
+1. GROUND scenarios in one of the 5 threat categories above
+2. REFERENCE specific MITRE ATT&CK techniques from the threat profile
+3. USE realistic IOC patterns (even if not the exact real IOC values — use similar format)
+4. REFLECT the LEA operational context: mention criminal case files, dispatch systems, informant protection, GDPR obligations
+5. INCLUDE Europol EC3 escalation for nation-state or organised crime incidents
+6. MATCH the attack timeline to the threat category (APT = slow and stealthy, ransomware = rapid destruction)
+
+Scenario generation priority for SAFE:
+- Category 1 (APT) — HIGH: Most scenarios should include APT29 or Salt Typhoon threat context
+- Category 2 (Ransomware) — HIGH: Extremely relevant for LEA operational continuity
+- Category 3 (Insider) — MEDIUM: Important for LEA governance training
+- Category 4 (Phishing) — HIGH: Most common initial access vector for LEAs
+- Category 5 (Supply Chain) — MEDIUM: Relevant for LEA IT governance
+
+=============================================================================
+EUROPOL-RELEVANT THREAT TAXONOMY (FOR INCIDENT CLASSIFICATION)
+=============================================================================
+
+When classifying incidents in SAFE scenarios, use these Europol taxonomy classes:
+
+Class: Malware
+- Ransomware: LockBit, ALPHV, Cl0p, Black Basta
+- Backdoor: SUNBURST, GoldMax, Cobalt Strike BEACON
+- Dropper: TEARDROP, BRc4
+- Info-Stealer: Redline, Raccoon, Vidar
+
+Class: Intrusion
+- Supply Chain: SolarWinds, 3CX, MOVEit
+- System Compromise: exploitation of CVEs in VPN, network devices
+- Network Intrusion: lateral movement, privilege escalation
+
+Class: Information Gathering
+- Phishing: spear-phishing, business email compromise
+- Scanning: reconnaissance of LEA networks from external IP
+- Social Engineering: impersonation of Europol/Interpol
+
+Class: Fraud
+- Identity Theft: credential theft via phishing or info-stealer
+- Account Abuse: compromised LEA officer credentials used by criminal group
+
+Class: Availability
+- DDoS: volumetric attack against LEA public-facing services
+- Sabotage: ransomware targeting operational systems
+
+=============================================================================
+SUMMARY: SAFE SCENARIO GENERATION QUICK REFERENCE
+=============================================================================
+
+Threat Actor          | Malware/Method              | Primary LEA Risk
+APT29 / SVR Russia    | SUNBURST, Golden SAML       | Criminal intelligence exfiltration
+Salt Typhoon / MSS    | Router implants, CALEA      | Wiretap data compromise
+LockBit 3.0 / RaaS   | Ransomware + double extort  | Operational disruption + data leak
+Insider Threat        | Valid credentials + exfil   | Evidence tampering, informant exposure
+Organised Crime BEC   | Phishing + social eng       | Credential theft, investigation leak
+MSP/Supply Chain      | Trusted access abuse        | Backdoor via third party
+
+Mandatory incident phase for all SAFE scenarios:
+Phase X — Regulatory Notification:
+  GDPR Art.33: 72-hour DPA notification if personal data breached
+  NIS2 Art.23: 24-hour early warning to national CERT/CSIRT
+  Europol EC3:  Immediate notification if criminal infrastructure or cross-border impact
+  Internal: CISO → Senior Management → Legal → DPO → External Counsel

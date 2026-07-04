@@ -1,0 +1,134 @@
+sequenceDiagram
+    participant User
+    participant FastAPI as FastAPI Server
+    participant Extractor as DocumentExtractor
+    participant Processor as DocumentProcessor
+    participant EmbedSvc as EmbeddingService
+    participant SparseEmbed as SparseEmbeddingService
+    participant VectorStore as VectorStore<br/>(Qdrant + SQLite)
+    participant Retrieval as RetrievalSystem
+    participant Reranker as AdvancedReranker
+    participant LLM as LLMClient
+
+    Note over User,LLM: Document Processing Flow (/process endpoint)
+
+    User->>FastAPI: POST /process<br/>{data_folder, force_reprocess}
+    FastAPI->>FastAPI: initialize_services()
+    activate FastAPI
+    FastAPI->>Extractor: Initialize
+    FastAPI->>Processor: Initialize
+    FastAPI->>EmbedSvc: Initialize
+    FastAPI->>SparseEmbed: Initialize (optional)
+    FastAPI->>VectorStore: Initialize
+    FastAPI->>Retrieval: Initialize
+    FastAPI->>LLM: Initialize
+    deactivate FastAPI
+
+    FastAPI->>Extractor: extract_from_folder(data_folder)
+    activate Extractor
+    loop For each file in folder
+        Extractor->>Extractor: extract_from_file(file_path)
+        alt PDF file
+            Extractor->>Extractor: _extract_pdf()
+        else DOCX file
+            Extractor->>Extractor: _extract_docx()
+        else Excel file
+            Extractor->>Extractor: _extract_excel()
+        else Text file
+            Extractor->>Extractor: _extract_text()
+        end
+    end
+    Extractor-->>FastAPI: List[extracted_docs]
+    deactivate Extractor
+
+    loop For each extracted document
+        FastAPI->>VectorStore: get_document_metadata(document_id)
+        alt Document not processed or force_reprocess
+            FastAPI->>Processor: process_extracted_document(doc_data)
+            activate Processor
+            Processor->>Processor: chunk_text(text, chunk_size, chunk_overlap)
+            Processor-->>FastAPI: List[DocumentChunk]
+            deactivate Processor
+
+            FastAPI->>EmbedSvc: embed_documents(chunk_contents)
+            activate EmbedSvc
+            EmbedSvc->>EmbedSvc: encode(texts, batch_size)
+            EmbedSvc-->>FastAPI: dense_embeddings[]
+            deactivate EmbedSvc
+
+            opt Sparse embeddings enabled
+                FastAPI->>SparseEmbed: embed_documents(chunk_contents)
+                activate SparseEmbed
+                SparseEmbed->>SparseEmbed: encode(texts, batch_size)
+                SparseEmbed-->>FastAPI: sparse_embeddings[]
+                deactivate SparseEmbed
+            end
+
+            FastAPI->>VectorStore: add_chunks(chunks, embeddings, sparse_embeddings)
+            activate VectorStore
+            VectorStore->>VectorStore: store_document_metadata(SQLite)
+            VectorStore->>VectorStore: store_chunk_metadata(SQLite)
+            VectorStore->>VectorStore: upsert(Qdrant with vectors)
+            deactivate VectorStore
+        end
+    end
+
+    FastAPI-->>User: ProcessResponse<br/>{status, documents_processed, chunks_created}
+
+    Note over User,LLM: Query & Answer Generation Flow (/api/query endpoint)
+
+    User->>FastAPI: POST /api/query<br/>{query, top_k, use_reranking, use_hybrid, initial_k}
+
+    FastAPI->>Retrieval: search(query, top_k, use_reranking, use_hybrid, initial_k)
+    activate Retrieval
+
+    alt Hybrid search enabled
+        Retrieval->>EmbedSvc: embed_query(query)
+        EmbedSvc-->>Retrieval: dense_vector
+        Retrieval->>SparseEmbed: embed_query(query)
+        SparseEmbed-->>Retrieval: sparse_vector
+
+        Retrieval->>VectorStore: qdrant_client.query_points(prefetch + FusionQuery RRF)
+        activate VectorStore
+        VectorStore->>VectorStore: Prefetch sparse results (limit: initial_k*4)
+        VectorStore->>VectorStore: Prefetch dense results (limit: initial_k*4)
+        VectorStore->>VectorStore: Apply Reciprocal Rank Fusion (RRF)
+        VectorStore-->>Retrieval: initial_k results
+        deactivate VectorStore
+    else Dense vector search only
+        Retrieval->>EmbedSvc: embed_query(query)
+        EmbedSvc-->>Retrieval: dense_vector
+
+        Retrieval->>VectorStore: search_documents(query_embedding, limit=initial_k)
+        activate VectorStore
+        VectorStore->>VectorStore: Qdrant vector search
+        VectorStore-->>Retrieval: initial_k results
+        deactivate VectorStore
+    end
+
+    alt Reranking enabled
+        Retrieval->>Reranker: rerank(query, results, top_k, initial_k)
+        activate Reranker
+        Reranker->>Reranker: cross_encoder.predict(query-doc pairs)
+        Reranker->>Reranker: sort by reranker scores
+        Reranker-->>Retrieval: top_k reranked results
+        deactivate Reranker
+    else No reranking
+        Retrieval->>Retrieval: Take top_k results
+    end
+
+    Retrieval-->>FastAPI: search_results<br/>{results[], metadata}
+    deactivate Retrieval
+
+    FastAPI->>FastAPI: Build context from results<br/>Format: [Source: doc_name]\ncontent
+
+    FastAPI->>LLM: generate_answer(query, context)
+    activate LLM
+    LLM->>LLM: Build messages[]<br/>system_prompt + context + user_query
+    LLM->>LLM: POST to LLM API<br/>(OpenAI-compatible endpoint)
+    Note over LLM: Compatible with Ollama, LM Studio, vLLM
+    LLM-->>FastAPI: answer (generated text)
+    deactivate LLM
+
+    FastAPI->>FastAPI: Build QueryResponse<br/>{query, answer, context, sources[], metadata}
+    FastAPI-->>User: QueryResponse with LLM-generated answer

@@ -1,0 +1,248 @@
+DOCUMENT: Europol Common Taxonomy for Law Enforcement Agencies and CSIRTs — Incident Classification Reference
+SOURCE: Europol EC3 / ENISA Common Taxonomy for Law Enforcement and CSIRTs (used in EMPACT framework)
+PURPOSE: Authoritative incident classification reference for SAFE SOP generator
+
+=============================================================================
+OVERVIEW
+=============================================================================
+
+The Europol Common Taxonomy provides a standardised classification system used across EU Law Enforcement Agencies and Computer Security Incident Response Teams (CSIRTs). It enables:
+- Consistent cross-border incident reporting via SIENA (Secure Information Exchange Network Application)
+- Harmonised data collection for threat landscape analysis (IOCTA reports)
+- Correct legislative mapping for criminal prosecution and civil obligations
+- Interoperability between national LEAs and Europol EC3
+
+Taxonomy Structure:
+  Class (scenario-level) → Type (incident-level) → Sub-type (optional, tool/technique level)
+
+Each incident reported to Europol EC3 must include:
+- Primary Class and Type
+- Legislative mapping (Budapest Convention article + applicable EU Directive)
+- Incident severity (critical / high / medium / low)
+
+=============================================================================
+TAXONOMY CLASSES, TYPES, AND LEGISLATIVE MAPPINGS
+=============================================================================
+
+--- CLASS: MALWARE ---
+Description: Any malicious software designed to disrupt, damage, or gain unauthorised access to a computer system.
+Scenario-level label: "Malware incident"
+
+Types within Malware class:
+  - Ransomware: Encrypts victim data and demands ransom for decryption key. Variants: double extortion (encrypt + exfiltrate), triple extortion (encrypt + exfiltrate + DDoS).
+  - Worm: Self-replicating malware that spreads across networks without user interaction.
+  - Trojan / RAT (Remote Access Trojan): Disguised as legitimate software; provides attacker with remote control.
+  - Spyware / Keylogger: Captures user credentials, keystrokes, or sensitive data.
+  - Botnet agent: Infected system enrolled in attacker-controlled botnet.
+  - Infostealer: Designed to harvest credentials, browser data, and sensitive files.
+  - Malicious Command and Control (C&C): Malware communicating with attacker-controlled infrastructure.
+  - Rootkit: Hides malware presence from operating system and security tools.
+  - Cryptominer: Hijacks system resources for cryptocurrency mining.
+
+Legislative mapping for Malware:
+  - Budapest Convention Art. 2 (illegal access)
+  - Budapest Convention Art. 4 (data interference — for ransomware specifically)
+  - Budapest Convention Art. 5 (system interference)
+  - Budapest Convention Art. 6 (misuse of devices — tools used to deploy malware)
+  - NIS2 Directive Art. 3 (essential entity obligations), Art. 23 (incident reporting)
+  - EU GDPR Art. 33-34 (if personal data is encrypted or exfiltrated)
+
+--- CLASS: AVAILABILITY ---
+Description: Attacks that disrupt, degrade, or destroy the availability of IT systems or data.
+Scenario-level label: "Availability incident"
+
+Types within Availability class:
+  - Distributed Denial of Service (DDoS): Overwhelming a system or network with traffic to deny legitimate access. Sub-types: volumetric, protocol, application-layer.
+  - Denial of Service (DoS): Single-source attack to deny availability.
+  - Sabotage: Deliberate physical or logical destruction of IT systems.
+  - Power disruption: Physical attack on power infrastructure affecting IT.
+  - Communication disruption: Disruption of communication channels (radio, internet, telephone).
+  - Ransomware-induced availability loss: Availability impact as consequence of ransomware encryption.
+
+Legislative mapping for Availability:
+  - Budapest Convention Art. 5 (system interference — primary)
+  - Budapest Convention Art. 2 (illegal access — if combined with intrusion)
+  - NIS2 Directive Art. 3, 23 (availability incidents qualify as significant incidents for essential entities)
+  - EU Critical Entities Resilience Directive (CER) 2022/2557 (if critical infrastructure is targeted)
+
+--- CLASS: INFORMATION GATHERING ---
+Description: Attacks aimed at collecting information about target systems, networks, or persons without necessarily causing immediate damage.
+Scenario-level label: "Information gathering incident"
+
+Types within Information Gathering class:
+  - Scanning / probing: Automated scanning of IP ranges, port scanning, vulnerability scanning.
+  - Sniffing: Passive interception of network traffic to capture credentials or data.
+  - Social engineering: Manipulating individuals to disclose information or perform actions (not phishing-specific).
+  - Phishing: Deceptive communications (email, SMS, voice) to obtain credentials or install malware.
+  - Spear-phishing: Targeted phishing directed at specific individuals (high-value targets in LEAs).
+  - Whaling: Spear-phishing targeting senior executives or command officers.
+  - Vishing / Smishing: Voice or SMS-based phishing.
+  - Open Source Intelligence (OSINT) abuse: Exploitation of publicly available information for attack planning.
+  - DNS enumeration: Mapping of organisation's DNS infrastructure.
+
+Legislative mapping for Information Gathering:
+  - GDPR Art. 5 (data minimisation principle violated by unauthorised collection), Art. 25 (data protection by design)
+  - Budapest Convention Art. 2 (illegal access — when scanning leads to system access)
+  - Budapest Convention Art. 6 (misuse of devices — scanning tools)
+  - EU Directive on attacks against information systems 2013/40/EU, Art. 6 (illegal interception)
+
+--- CLASS: INTRUSION ATTEMPT ---
+Description: Attempted but not necessarily successful unauthorised access to systems.
+Scenario-level label: "Intrusion attempt incident"
+
+Types within Intrusion Attempt class:
+  - Exploitation of known vulnerability: Attempted exploitation of CVE-listed vulnerability.
+  - Exploitation of unknown vulnerability (zero-day): Attempted exploitation of previously unknown vulnerability.
+  - Brute force attack: Systematic password guessing or credential stuffing.
+  - Password spraying: Low-volume password attempts across many accounts to avoid lockout.
+  - Credential stuffing: Using leaked credential lists to attempt authentication.
+  - SQL injection attempt: Attempted database manipulation via malformed input.
+  - Cross-Site Scripting (XSS) attempt: Attempted injection of malicious scripts.
+  - API abuse: Attempted exploitation of application programming interfaces.
+
+Legislative mapping for Intrusion Attempt:
+  - Budapest Convention Art. 2 (illegal access — attempt provision under Art. 11)
+  - Budapest Convention Art. 6 (misuse of devices — tools used for intrusion attempts)
+  - Budapest Convention Art. 11 (attempt and aiding or abetting)
+  - NIS2 Directive Art. 3, 23 (near-miss incidents should be assessed for significant incident threshold)
+
+--- CLASS: INTRUSION ---
+Description: Successful unauthorised access to systems or data.
+Scenario-level label: "Intrusion incident"
+
+Types within Intrusion class:
+  - Account compromise: Attacker has gained control of a legitimate user or service account.
+  - Privileged account compromise: Attacker has gained administrative or privileged access.
+  - Lateral movement: Attacker moves from initial point of compromise to other systems.
+  - SQL injection (successful): Successful database manipulation via malformed input.
+  - Unauthorised physical access: Physical access to secure systems or data centres.
+  - Supply chain compromise: Intrusion via third-party software, hardware, or service provider.
+  - Insider threat: Authorised user abuses access for malicious purposes.
+  - Web application compromise: Successful exploitation of web-facing application.
+  - Remote code execution: Attacker executes code on victim system.
+
+Legislative mapping for Intrusion:
+  - Budapest Convention Art. 2 (illegal access — primary for all intrusion types)
+  - Budapest Convention Art. 7 (computer-related forgery — if credentials were forged)
+  - Budapest Convention Art. 8 (computer-related fraud — if financial gain is motive)
+  - NIS2 Directive Art. 3, 23 (significant incident reporting mandatory)
+  - EU GDPR Art. 33-34 (if personal data accessed — mandatory notification)
+  - EU Directive 2013/40/EU Art. 3 (illegal access to information systems)
+
+--- CLASS: INFORMATION CONTENT SECURITY ---
+Description: Incidents involving the unauthorised access to, theft of, or manipulation of information.
+Scenario-level label: "Information security incident"
+
+Types within Information Content Security class:
+  - Unauthorised data access: Accessing data without authorisation, even if not exfiltrated.
+  - Data exfiltration: Unauthorised transfer of data outside the organisation.
+  - Data manipulation / tampering: Unauthorised modification of data to corrupt or falsify.
+  - Data destruction: Deliberate deletion or destruction of data.
+  - Sensitive data exposure: Unintentional exposure of sensitive data (misconfiguration, etc.).
+  - Criminal intelligence database breach: Unauthorised access to law enforcement sensitive databases.
+  - Operational data leak: Leakage of ongoing operations data.
+
+Legislative mapping for Information Content Security:
+  - EU GDPR Art. 5 (data integrity), Art. 33-34 (breach notification — mandatory for personal data)
+  - Budapest Convention Art. 2 (illegal access)
+  - Budapest Convention Art. 4 (data interference — for manipulation/destruction)
+  - Budapest Convention Art. 7 (computer-related forgery — for data manipulation)
+  - EU Law Enforcement Directive (LED) 2016/680 — applies specifically to law enforcement personal data processing
+
+--- CLASS: FRAUD AND ABUSIVE CONTENT ---
+Description: Incidents involving deception for financial or operational gain, and distribution of harmful content.
+Scenario-level label: "Fraud / Abusive Content incident"
+
+Types within Fraud class:
+  - Identity theft: Theft and fraudulent use of personal identity information.
+  - Payment fraud: Fraudulent manipulation of payment systems.
+  - Business Email Compromise (BEC): Impersonation of trusted entities to initiate fraudulent transactions.
+  - Advance fee fraud: Deceptive communications promising large sums to victims.
+  - SPAM: Unsolicited bulk email, often carrying malware or phishing links.
+  - Child sexual abuse material (CSAM): Requires immediate escalation to EC3 / national authority.
+  - Online harassment / cyberstalking: Digital harassment targeting individuals.
+  - Disinformation: Deliberate spread of false information targeting LEA operations or public trust.
+
+Legislative mapping for Fraud:
+  - Budapest Convention Art. 8 (computer-related fraud)
+  - Budapest Convention Art. 7 (computer-related forgery — for identity documents)
+  - EU eCommerce Directive 2000/31/EC (online service provider obligations)
+  - Budapest Convention Art. 9 (offences related to child pornography)
+  - EU GDPR Art. 33-34 (if personal data of victims is involved)
+  - Europol mandate (Regulation 2016/794) — Europol specifically mandated for cybercrime and online fraud
+
+=============================================================================
+INCIDENT SEVERITY CLASSIFICATION
+=============================================================================
+
+Severity levels for use in policy documents and incident reporting:
+
+CRITICAL:
+- Active encryption or destruction of operational systems
+- Confirmed personal data breach affecting large number of data subjects
+- Cross-border impact confirmed or highly suspected
+- Criminal intelligence database compromised
+- Systems supporting active criminal investigations affected
+Reporting requirement: Immediate escalation to all levels including Europol EC3 / LEERP
+
+HIGH:
+- Active intrusion with lateral movement in progress
+- Ransomware deployed but not yet widely spread
+- Personal data breach confirmed, smaller scale
+- Operational disruption to non-critical systems
+Reporting requirement: Escalate to L3-L5 within timeframes; assess for NIS2 significant incident
+
+MEDIUM:
+- Intrusion attempt detected and blocked
+- Malware infection contained to single system
+- Phishing campaign targeting staff (even if no credentials captured)
+- Suspicious scanning or reconnaissance activity
+Reporting requirement: Internal escalation L1-L2; assess for significant incident threshold
+
+LOW:
+- Automated vulnerability scan from external IP
+- Single phishing email (blocked by filters)
+- Isolated policy violation
+Reporting requirement: Document and monitor; no external reporting required
+
+=============================================================================
+EMPACT FRAMEWORK INCIDENT CATEGORIES
+=============================================================================
+
+The EMPACT (European Multidisciplinary Platform Against Criminal Threats) framework organises cybercrime into priority areas that align with the Europol taxonomy:
+
+EMPACT Cybercrime Priority Areas (relevant to LEA SOPs):
+1. Ransomware / Malware attacks on critical infrastructure and essential services
+2. Child Sexual Exploitation Online (CSEO)
+3. Online fraud (payment card fraud, BEC, cryptocurrency fraud)
+4. Dark web / Criminal marketplaces
+5. Attacks on critical infrastructure (OT/ICS environments)
+
+For LEA organisations: most incidents will fall under EMPACT Cybercrime area 1 (ransomware/malware on public sector) or area 3 (fraud targeting LEA financial systems).
+
+=============================================================================
+FORMAT FOR INCIDENT CLASSIFICATION IN SOP DOCUMENTS
+=============================================================================
+
+Standard format for the incident_classification section in SAFE-generated SOPs:
+
+"Class: [Europol Taxonomy Class]
+Type: [Europol Taxonomy Type(s)]
+Sub-type (if applicable): [specific variant or technique]
+EMPACT Priority Area: [relevant EMPACT category]
+Legislative mapping:
+  - Budapest Convention: [Article numbers and descriptions]
+  - NIS2 Directive: [Applicable articles]
+  - GDPR: [Applicable articles if personal data involved]
+  - Other: [LED, CER Directive, etc. if applicable]
+Severity: [CRITICAL / HIGH / MEDIUM / LOW]"
+
+Example for Ransomware scenario:
+"Class: Malware
+Type: Ransomware (double extortion — encryption + data exfiltration)
+EMPACT Priority Area: Ransomware / Malware attacks on critical infrastructure
+Legislative mapping:
+  - Budapest Convention Art. 2 (illegal access), Art. 4 (data interference), Art. 5 (system interference), Art. 6 (misuse of devices)
+  - NIS2 Directive Art. 3 (essential entity obligations), Art. 23 (significant incident reporting)
+  - EU GDPR Art. 33 (breach notification to supervisory authority within 72 hours), Art. 34 (notification to data subjects)
+Severity: CRITICAL — operational systems affected; personal data potentially exfiltrated"

@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # SAFE LLM Service (standalone — connects to external Qdrant)
+  safe-llm:
+    image: safe-llm:staging
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: safe-llm
+    volumes:
+      # Mount data folder for documents
+      - ./data:/app/data
+      # Mount source code for development (hot reload)
+      - ./src:/app/src
+      - ./main.py:/app/main.py
+    environment:
+      # Service configuration
+      - SERVICE_PORT=8002
+      - LOG_LEVEL=INFO
+
+      # Data folder
+      - DATA_FOLDER=/app/data
+
+      # Qdrant configuration (point to external Qdrant instance)
+      - QDRANT_HOST=10.240.138.254
+      - QDRANT_PORT=7333
+      - COLLECTION_NAME=safe_scenarios
+      - EMBEDDING_DIM=384
+
+      # Storage
+      - METADATA_DB_PATH=/app/data/scenario_metadata.db
+
+      # Embedding configuration
+      - EMBEDDING_PROVIDER=sentence_transformer
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+      - EMBEDDING_DEVICE=cpu
+      - EMBEDDING_BATCH_SIZE=32
+
+      # Document processing
+      - CHUNK_SIZE=1000
+      - CHUNK_OVERLAP=200
+      - MAX_CHUNK_SIZE=2000
+
+      # Retrieval
+      - DEFAULT_TOP_K=5
+      - MAX_TOP_K=20
+      - RETRIEVAL_ALPHA=0.7
+
+      # LLM configuration (adjust to your LLM service)
+      # For LLM on another machine, use the IP address or hostname:
+      - LLM_API_URL=http://10.240.138.254:11434/v1/chat/completions
+      # - LLM_API_URL=http://host.docker.internal:11434/v1/chat/completions
+      - LLM_MODEL=chat:gpt-oss
+      - LLM_TEMPERATURE=0.7
+      - LLM_SEED=42
+      - LLM_STREAM=false
+    restart: unless-stopped
+    network_mode: "host"  # Use host network to access external Qdrant and LLM

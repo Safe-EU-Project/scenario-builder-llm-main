@@ -1,0 +1,306 @@
+DOCUMENT: SOP Structure Reference for Law Enforcement Cyber Incident Response Policies
+SOURCE: NIST SP 800-61r3 (March 2025), EU Law Enforcement Emergency Response Protocol (LEERP, Council of EU ST-6527-2025)
+PURPOSE: Authoritative structure reference for SAFE auto-generated SOPs
+
+=============================================================================
+SECTION 1: MANAGEMENT COMMITMENT (NIST SP 800-61r3 §2.1, LEERP §3.1)
+=============================================================================
+
+A cyber incident response policy MUST include a formal management commitment statement. This section:
+- States that senior leadership mandates compliance with the policy
+- Allocates necessary human, technical, and financial resources for incident response
+- Authorises the Cyber Incident Response Team (CIRT) capability
+- Designates the issuing authority responsible for policy approval and signature
+- Confirms the policy is aligned with organisational risk management strategy
+
+The management commitment section closes with: "This policy requires formal approval and signature from [issuing authority role and name]."
+
+Management commitment is mandatory per NIST SP 800-61r3 §2.1: "Management must support the incident response capability by establishing a policy and ensuring that adequate resources are available."
+
+=============================================================================
+SECTION 2: PURPOSE AND SCOPE (NIST SP 800-61r3 §2.3, LEERP §2)
+=============================================================================
+
+2.1 Purpose
+The purpose section defines:
+- The specific threat type or category this policy governs
+- The operational objective (detection, containment, investigation, recovery)
+- Why this policy is a priority for law enforcement agencies specifically
+
+2.2 Scope
+The scope section defines who and what the policy applies to:
+- All ICT systems operated by or on behalf of the organisation
+- All staff with access to operational networks, case management systems, criminal intelligence databases
+- Third-party contractors and service providers with network or system access
+- Geographic and organisational boundaries
+
+2.3 Regulatory Framework — MANDATORY REFERENCES
+Every LEA cyber incident response policy MUST explicitly reference the following legal instruments:
+
+EU NIS2 DIRECTIVE 2022/2555 (Article 23):
+- Mandatory incident reporting for essential entities in the public sector
+- Early warning to national CERT/CSIRT within 24 hours of becoming aware of significant incident
+- Incident notification within 72 hours
+- Final incident report within one month
+
+EU GENERAL DATA PROTECTION REGULATION (GDPR) 2016/679:
+- Article 33: Personal data breach notification to supervisory authority without undue delay and within 72 hours of becoming aware
+- Article 34: Communication of personal data breach to data subject without undue delay when high risk to rights and freedoms
+
+BUDAPEST CONVENTION ON CYBERCRIME (ETS 185):
+- Article 2: Illegal access to computer systems
+- Article 5: System interference
+- Article 6: Misuse of devices
+- Article 11: Attempt and aiding or abetting
+- Provides framework for international cooperation in cybercrime investigations
+
+EU LAW ENFORCEMENT DIRECTIVE (LED) 2016/680:
+- Data protection standards specific to criminal justice processing
+- Applies to processing of personal data by competent authorities for prevention, investigation, detection or prosecution of criminal offences
+
+NATIONAL TRANSPOSITION LAW: [LEA INPUT NEEDED — national law transposing NIS2 and GDPR, and any internal ministry directive]
+
+=============================================================================
+SECTION 3: INCIDENT CLASSIFICATION (LEERP §4, Europol Common Taxonomy)
+=============================================================================
+
+Incidents must be classified using the Europol Common Taxonomy for Law Enforcement Agencies and CSIRTs. Classification consists of:
+- Class (top-level category, scenario-level)
+- Type (specific incident type, incident-level)
+- Legislative mapping (applicable Budapest Convention articles and EU Directives)
+
+Classification enables:
+- Cross-border information sharing with other EU Member State LEAs via SIENA
+- Consistent reporting to Europol EC3 under the EMPACT framework
+- Correct application of applicable legal frameworks
+
+=============================================================================
+SECTION 4: THREAT ASSESSMENT (NIST SP 800-61r3 §3.2, LEERP §4)
+=============================================================================
+
+4.1 Threat Profile
+Must include:
+- Threat actor category (organised criminal group, state-affiliated, insider threat, opportunistic)
+- Initial attack vector (phishing, exploitation of vulnerability, supply chain, insider)
+- Target assets (case management databases, criminal intelligence systems, communication infrastructure)
+- Identified vulnerability class (unpatched systems, lack of MFA, network segmentation failure)
+- Estimated operational impact if uncontained (operational disruption duration, data exposure risk, reputational damage)
+- Likelihood assessment: HIGH / MEDIUM / LOW
+
+4.2 Simulation Evidence
+When simulation data is available:
+- Number of simulation runs conducted
+- Average trainee performance score
+- Most frequently missed expected actions with failure rates
+- Per-phase performance breakdown
+- Identification of capability gaps that translate to policy requirements
+
+When no simulation data is available: "No simulation data available — assessment is threat-profile-based only."
+
+=============================================================================
+SECTION 5: MANDATORY RESPONSE PROCEDURES (NIST SP 800-61r3 §3, LEERP §5)
+=============================================================================
+
+5.1 Detection and Initial Assessment (T+0 to T+30 minutes)
+The first response phase covers:
+- Recognition of indicators of compromise (IoC) specific to the threat type
+- Initial system isolation WITHOUT powering off (to preserve volatile memory)
+- Documentation of time of discovery, affected systems, and observable indicators
+- Immediate notification via out-of-band communication channel
+- Do NOT: attempt decryption, pay ransom, restart systems, or use potentially compromised communication channels
+
+NIST SP 800-61r3 §3.2: "The most critical phase of incident response is detection and initial analysis. Performing initial analysis as quickly as possible is essential for determining the scope of the incident."
+
+5.2 Containment (T+30 minutes to T+2 hours)
+- Activate the Cyber Incident Response Team (CIRT)
+- Implement network segmentation to prevent lateral movement
+- Block inter-VLAN routing between operational and administrative segments
+- Disable VPN access for non-essential personnel
+- Review and revoke recently created or modified privileged accounts
+- Verify backup integrity before any recovery decision
+- Activate out-of-band communications for all incident coordination
+
+NIST SP 800-61r3 §3.3: "Containment is important before an incident overwhelms resources or increases damage."
+
+5.3 Evidence Preservation — MUST PRECEDE ANY REMEDIATION
+CRITICAL: All evidence preservation steps MUST be completed BEFORE any remediation, patching, or system restoration.
+
+Mandatory evidence preservation steps:
+1. Create a verified forensic disk image of ALL affected systems using a hardware write-blocker
+2. Record the SHA-256 cryptographic hash of each forensic image immediately after acquisition
+3. Store images on isolated, write-protected, tamper-evident media
+4. Acquire volatile memory (RAM) dumps from all running affected systems before any system is powered down
+5. Collect and preserve all relevant log files in original, unmodified format:
+   - System event logs (Windows Event Log: System, Security, Application)
+   - Firewall, proxy, and IDS/IPS logs covering minimum 72-hour window prior to detection
+   - VPN and remote access authentication logs
+   - Email server logs (for phishing vector investigation)
+   - Active Directory authentication and privilege escalation logs
+6. Maintain a chain of custody log for every collected evidence item:
+   - Who collected it, when, from which system, where stored
+   - This log is legally required for criminal prosecution admissibility
+
+NIST SP 800-61r3 §3.3: "Evidence collection should be done carefully to preserve the integrity of the data."
+Legal requirement: Chain of custody documentation is required for evidence to be admissible in criminal proceedings under most EU member state procedural law.
+
+5.4 Escalation Chain (LEERP §5.2, NIS2 Art.23)
+A minimum of 6 escalation levels is required for LEA cyber incident response:
+
+L1 — First Responder (Internal — Immediate)
+Trigger: Any indicator of incident detected
+Action: Isolate, document, and notify Duty ICT Officer immediately
+Timeframe: Immediately upon detection
+
+L2 — Incident Commander (Internal — Within 30 minutes)
+Trigger: Incident confirmed on one or more systems
+Action: Activate CIRT, initiate network isolation measures
+Role: [LEA INPUT NEEDED — e.g. Head of IT Security / CISO / ICT Coordinator]
+
+L3 — Senior Management (Internal — Within 1 hour)
+Trigger: Operational systems affected or sensitive data potentially compromised
+Action: Authorise significant containment decisions, manage external communications
+Role: [LEA INPUT NEEDED — e.g. Head of Division / Deputy Commissioner]
+
+L4 — Data Protection Officer (Internal — Within 1 hour)
+Trigger: Personal data breach confirmed or suspected
+Action: Begin data breach assessment, prepare GDPR Art.33 notification if required
+Deadline: Internal notification within 1 hour; external notification to DPA within 72 hours (GDPR Art.33)
+
+L5 — National CERT/CSIRT (External — Within 24 hours)
+Trigger: Significant incident per NIS2 Art. 23 criteria
+Action: Submit early warning notification to national CERT/CSIRT
+Legal basis: NIS2 Directive 2022/2555, Article 23
+Deadline: Early warning within 24 hours; full incident notification within 72 hours
+
+L6 — Europol EC3 / LEERP Activation (External — As soon as feasible)
+Trigger: Criminal infrastructure involved, cross-border impact suspected, or LEERP threshold reached
+Action: Notify Europol EC3 through established SIENA channel; activate LEERP coordination if cross-border
+Legal basis: LEERP (Council of EU ST-6527-2025), Europol Regulation 2016/794
+
+LEERP Activation Thresholds (from EU Law Enforcement Emergency Response Protocol):
+- Major cross-border cyber incident affecting two or more EU Member States
+- Incident targeting critical infrastructure with cross-border significance
+- Involvement of criminal groups operating across multiple jurisdictions
+
+5.5 External Reporting Obligations
+Mandatory reporting rows that every LEA policy MUST include:
+
+Row 1: National Data Protection Authority
+Legal basis: GDPR Article 33
+Obligation: Personal data breach notification
+Deadline: Within 72 hours of becoming aware (GDPR Art.33 is an absolute deadline — no exceptions)
+
+Row 2: National CERT/CSIRT
+Legal basis: NIS2 Directive 2022/2555, Article 23
+Obligation: Significant incident early warning
+Deadline: Early warning within 24 hours; notification within 72 hours; final report within 1 month
+
+Row 3: Europol EC3
+Legal basis: LEERP / Europol Regulation 2016/794 / Operational cooperation agreement
+Obligation: Criminal infrastructure notification, cross-border coordination
+Deadline: As soon as operationally feasible
+
+Row 4: Ministry / Supervisory Body
+Legal basis: [LEA INPUT NEEDED — national internal reporting requirement]
+Obligation: [LEA INPUT NEEDED]
+Deadline: [LEA INPUT NEEDED]
+
+=============================================================================
+SECTION 6: PREVENTIVE CONTROLS (NIST SP 800-61r3 §2.2, LEERP §6)
+=============================================================================
+
+6.1 Technical Controls
+Technical controls must be grounded in the specific vulnerability class and simulation gaps identified:
+
+Priority classification:
+- CRITICAL: Controls that directly address the identified primary attack vector
+- HIGH: Controls that address identified secondary vulnerability classes
+- MEDIUM: Controls that improve overall security posture
+
+Common mandatory technical controls for LEA environments:
+- Multi-Factor Authentication (MFA) on ALL remote access (VPN, webmail, administrative interfaces)
+- Network segmentation between operational, administrative, and internet-facing segments
+- Offline or air-gapped backups tested quarterly
+- Endpoint Detection and Response (EDR) on all workstations and servers
+- Patch management: critical CVEs remediated within 48 hours, high CVEs within 7 days
+- Email filtering with attachment sandboxing and URL detonation
+- Privileged Access Management (PAM) for administrative accounts
+- Security Information and Event Management (SIEM) with 24/7 monitoring capability
+
+6.2 Administrative Controls
+- Mandatory annual cybersecurity awareness training for all personnel
+- Bi-annual tabletop incident response exercises for CIRT (minimum)
+- Annual penetration testing of all internet-facing systems and remote access infrastructure
+- Third-party and contractor security assessment prior to any network access
+- Periodic review of user access rights — remove inactive accounts and excess privileges
+
+=============================================================================
+SECTION 7: ROLES AND RESPONSIBILITIES (NIST SP 800-61r3 §2.4, LEERP §3.2)
+=============================================================================
+
+Minimum required roles for LEA cyber incident response:
+
+First Responder (any staff member):
+- Responsibilities: Detect, document initial indicators, isolate the affected device, immediately notify the Duty ICT Officer. Do NOT take any other action.
+- lea_input_needed: false (universal role)
+
+Duty ICT Officer:
+- Responsibilities: Receive notification, confirm incident, initiate initial network isolation measures, activate the CIRT
+- lea_input_needed: false (role type is universal, title may vary)
+
+Incident Commander:
+- Responsibilities: Overall incident command and coordination. Final authority on containment and recovery decisions. Single point of contact for senior management.
+- lea_input_needed: TRUE — validate rank and title against organisation's command structure
+
+Digital Forensics Officer:
+- Responsibilities: Lead all evidence acquisition and preservation activities per evidence preservation section. Maintain chain of custody. Liaison with prosecutorial authority on evidence admissibility.
+- lea_input_needed: false (critical mandatory role)
+
+Communications Officer / Public Affairs:
+- Responsibilities: Manage all internal communications, coordinate external reporting obligations per external reporting section, handle media inquiries if applicable
+- lea_input_needed: TRUE — may be a separate role or combined with another
+
+Data Protection Officer (DPO):
+- Responsibilities: Assess personal data breach impact, prepare GDPR Art.33 notification, advise on LED 2016/680 compliance, maintain data breach register
+- lea_input_needed: TRUE — confirm role title and whether DPO is internal or external
+
+Senior Management:
+- Responsibilities: Authorise significant containment decisions (e.g. taking operational systems offline). Manage external stakeholder communications including ministerial notification.
+- lea_input_needed: TRUE — validate rank/title against organisation's command structure
+
+External Coordination Lead:
+- Responsibilities: Liaise with national CERT/CSIRT, Europol EC3, and other external bodies under LEERP
+- lea_input_needed: TRUE — confirm whether this is a separate role or combined with another
+
+NIST SP 800-61r3 §2.4: "The incident response team model should be selected and implemented based on the organisation's structure, workforce size, and mission."
+
+=============================================================================
+SECTION 8: RESOURCE REQUIREMENTS (NIST SP 800-61r3 §2.3)
+=============================================================================
+
+Resource requirements must cover:
+- Priority training areas derived from simulation performance data
+- Required forensic and incident response tools
+- Minimum CIRT composition (number and roles) [LEA INPUT NEEDED]
+- On-call availability requirement (24/7 rota or business hours only) [LEA INPUT NEEDED]
+- Estimated budget or procurement category [LEA INPUT NEEDED]
+
+Essential forensic tools for digital evidence:
+- Hardware write-blocker (Tableau, Wiebetech, or equivalent)
+- Forensic imaging software (FTK Imager, dd, or equivalent court-accepted tool)
+- Volatile memory acquisition tool (Magnet RAM Capture, WinPmem, or equivalent)
+- Chain of custody management system or physical evidence log
+
+=============================================================================
+SECTION 9: REVIEW CYCLE (NIST SP 800-61r3 §2.5, LEERP §7)
+=============================================================================
+
+Policy review must include at minimum:
+1. Full policy review — Annually, or immediately after any significant cyber incident
+2. SAFE simulation exercise — Bi-annually (minimum), aligned with SAFE scenario builder platform
+3. Regulatory compliance review (NIS2, GDPR) — Annually, conducted by or with the Data Protection Officer
+4. External security audit — [LEA INPUT NEEDED — frequency and approved auditor]
+5. Lessons-learned review — After each real incident, within 30 days of incident closure
+
+NIST SP 800-61r3 §2.5: "Lessons learned are essential to improving an organisation's ability to respond to future incidents."
+LEERP §7: Member States should conduct regular exercises to test LEERP activation procedures.

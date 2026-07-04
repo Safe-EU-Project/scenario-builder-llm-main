@@ -1,0 +1,283 @@
+[tool.poetry]
+name = "scenario-builder"
+version = "1.0.0"
+description = "A comprehensive document processing service that combines document extraction, RAG (Retrieval-Augmented Generation), and LLM integration to build intelligent scenario analysis systems."
+authors = ["Gerasimos Markantonatos gmarkan@netcompany.com"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.14"
+accelerate = "1.10.1"
+acres = "0.5.0"
+aiohttp = "3.9.1"
+aiosignal = "1.4.0"
+aiosqlite = "0.19.0"
+annotated-types = "0.7.0"
+anyio = "3.7.1"
+argon2-cffi = "25.1.0"
+argon2-cffi-bindings = "25.1.0"
+async-timeout = "4.0.3"
+attrs = "25.3.0"
+beautifulsoup4 = "4.12.2"
+cbor = "1.0.0"
+certifi = "2025.8.3"
+cffi = "2.0.0"
+charset-normalizer = "3.4.3"
+ci-info = "0.3.0"
+click = "8.3.0"
+coloredlogs = "15.0.1"
+configobj = "5.0.9"
+configparser = "7.2.0"
+datasets = "4.1.1"
+dill = "0.4.0"
+et-xmlfile = "2.0.0"
+etelemetry = "0.3.1"
+exceptiongroup = "1.3.0"
+fastapi = "0.104.1"
+fastembed = "0.7.3"
+filelock = "3.19.1"
+fitz = "0.0.1.dev2"
+FlagEmbedding = "1.3.5"
+flatbuffers = "25.9.23"
+frozenlist = "1.7.0"
+fsspec = "2025.9.0"
+grpcio = "1.75.1"
+grpcio-tools = "1.74.0"
+h11 = "0.16.0"
+h2 = "4.3.0"
+hf-xet = "1.1.9"
+hpack = "4.1.0"
+httpcore = "1.0.9"
+httplib2 = "0.31.0"
+httptools = "0.6.4"
+httpx = "0.28.1"
+huggingface-hub = "0.35.1"
+humanfriendly = "10.0"
+hyperframe = "6.1.0"
+idna = "3.10"
+ijson = "3.4.0"
+importlib-resources = "6.5.2"
+inscriptis = "2.6.0"
+ir-datasets = "0.5.11"
+isodate = "0.7.2"
+Jinja2 = "3.1.6"
+joblib = "1.5.2"
+loguru = "0.7.3"
+looseversion = "1.3.0"
+lxml = "6.0.2"
+lz4 = "4.4.4"
+MarkupSafe = "3.0.2"
+minio = "7.2.0"
+mmh3 = "5.2.0"
+mpmath = "1.3.0"
+multidict = "6.6.4"
+multiprocess = "0.70.16"
+networkx = "3.4.2"
+nibabel = "5.3.2"
+nipype = "1.10.0"
+nltk = "3.9.1"
+numpy = ">=1.26.4"
+nvidia-cublas-cu12 = "12.8.4.1"
+nvidia-cuda-cupti-cu12 = "12.8.90"
+nvidia-cuda-nvrtc-cu12 = "12.8.93"
+nvidia-cuda-runtime-cu12 = "12.8.90"
+nvidia-cudnn-cu12 = "9.10.2.21"
+nvidia-cufft-cu12 = "11.3.3.83"
+nvidia-cufile-cu12 = "1.13.1.3"
+nvidia-curand-cu12 = "10.3.9.90"
+nvidia-cusolver-cu12 = "11.7.3.90"
+nvidia-cusparse-cu12 = "12.5.8.93"
+nvidia-cusparselt-cu12 = "0.7.1"
+nvidia-nccl-cu12 = "2.27.3"
+nvidia-nvjitlink-cu12 = "12.8.93"
+nvidia-nvtx-cu12 = "12.8.90"
+onnxruntime = "1.23.0"
+openpyxl = "3.1.2"
+packaging = "25.0"
+pandas = ">=2.2.3"
+pathlib = "1.0.1"
+peft = "0.17.1"
+pillow = "11.3.0"
+portalocker = "3.2.0"
+propcache = "0.3.2"
+protobuf = "6.32.1"
+prov = "2.1.1"
+psutil = "7.1.0"
+puremagic = "1.30"
+py-rust-stemmers = "0.1.5"
+pyarrow = "21.0.0"
+pycparser = "2.23"
+pycryptodome = "3.23.0"
+pydantic = "2.5.0"
+pydantic-core = "2.14.1"
+pydot = "4.0.1"
+PyMuPDF = "1.23.8"
+PyMuPDFb = "1.23.7"
+pyparsing = "3.2.5"
+python-dateutil = "2.9.0.post0"
+python-docx = "1.1.0"
+python-dotenv = "1.0.0"
+python-magic = "0.4.27"
+python-multipart = "0.0.6"
+python-pptx = "0.6.23"
+pytz = "2025.2"
+pyxnat = "1.6.3"
+PyYAML = "6.0.3"
+qdrant-client = "1.15.1"
+rank-bm25 = "0.2.2"
+rdflib = "7.2.1"
+regex = "2025.9.18"
+requests = "2.32.5"
+safetensors = "0.6.2"
+scikit-learn = "1.7.2"
+scipy = "1.15.3"
+sentence-transformers = "2.7.0"
+sentencepiece = "0.2.1"
+simplejson = "3.20.1"
+six = "1.17.0"
+sniffio = "1.3.1"
+soupsieve = "2.8"
+starlette = "0.27.0"
+structlog = "23.2.0"
+sympy = "1.14.0"
+threadpoolctl = "3.6.0"
+tokenizers = "0.22.1"
+torch = "2.8.0"
+torchvision = "0.23.0"
+tqdm = "4.67.1"
+traits = "7.0.2"
+transformers = "4.56.2"
+trec-car-tools = "2.6"
+triton = "3.4.0"
+typing-extensions = "4.15.0"
+tzdata = "2025.2"
+unlzw3 = "0.2.3"
+urllib3 = "2.5.0"
+uvicorn = "0.24.0"
+uvloop = "0.21.0"
+warc3-wet = "0.2.5"
+warc3-wet-clueweb09 = "0.2.5"
+watchfiles = "0.21.0"
+websockets = "15.0.1"
+xlsxwriter = "3.2.9"
+xxhash = "3.5.0"
+yarl = "1.20.1"
+openai = "^2.3.0"
+ruff = "^0.14.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0.0"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.0.0"
+black = "^23.0.0"
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+mypy = "^1.0.0"
+pre-commit = "^3.0.0"
+
+[tool.poetry.extras]
+production = ["gunicorn"]
+
+[tool.poetry.scripts]
+rid-rag-service = "main:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Black code formatter configuration
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+include = '\.pyi?$'
+
+# isort import sorter configuration
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 100
+known_first_party = ["src"]
+
+# MyPy type checker configuration
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "qdrant_client.*",
+    "sentence_transformers.*",
+    "rank_bm25.*",
+    "minio.*",
+    "magic.*",
+]
+ignore_missing_imports = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/venv/*",
+    "*/.venv/*",
+    "*/dist/*",
+    "*/build/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "@abstract",
+]
+
+# Ruff linter configuration
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]  # imported but unused
+"tests/*.py" = ["B011"]   # assert False in tests

@@ -1,0 +1,223 @@
+DOCUMENT: EU Legal Requirements and Deadlines for Cyber Incident Response
+SOURCE: EU NIS2 Directive 2022/2555, EU GDPR 2016/679, Budapest Convention ETS 185, EU LED 2016/680, LEERP (Council of EU ST-6527-2025), Europol Regulation 2016/794
+PURPOSE: Authoritative legal reference for SAFE SOP generator — exact deadlines and obligations
+
+CRITICAL NOTE: These deadlines are legally binding. Any AI-generated SOP that deviates from these deadlines is INCORRECT and must be corrected before use.
+
+=============================================================================
+NIS2 DIRECTIVE 2022/2555 — ARTICLE 23 REPORTING OBLIGATIONS
+=============================================================================
+
+Applicability: Applies to essential entities (public administration is listed as an essential sector under Annex I), including law enforcement agencies operating ICT systems.
+
+Definition of "significant incident" (NIS2 Art. 23(3)):
+An incident is significant if it:
+(a) Has caused or is capable of causing severe operational disruption of the services or financial loss for the entity concerned, or
+(b) Has affected or is capable of affecting other natural or legal persons by causing considerable material or non-material damage
+
+Reporting obligations and deadlines (NIS2 Art. 23(4)):
+
+STEP 1 — EARLY WARNING: Within 24 hours of becoming aware of significant incident
+- Notify the national CERT/CSIRT or competent authority
+- State whether the incident is suspected to be caused by unlawful or malicious action
+- Indicate whether cross-border impact is suspected
+
+STEP 2 — INCIDENT NOTIFICATION: Within 72 hours of becoming aware of significant incident
+- Update the early warning with:
+  - Initial assessment of incident including severity and impact
+  - Indicators of compromise (if available)
+  - Update on suspected cause (unlawful/malicious action)
+
+STEP 3 — INTERMEDIATE REPORT: On request from national CERT/CSIRT
+- Provide status updates as requested by the national authority
+
+STEP 4 — FINAL REPORT: Within one month of submission of incident notification
+- Detailed description of incident including severity, impact, and likely cause
+- Description of measures taken to address the incident
+- Any cross-border impact assessed
+
+Additional NIS2 obligations for essential entities:
+- Art. 21: Risk management measures including incident response plans and CIRT capability
+- Art. 20: Management body responsible for approving cybersecurity measures and overseeing their implementation
+- Art. 32-33: Supervisory authority can impose administrative fines for non-compliance
+
+Penalty for non-compliance (NIS2 Art. 34):
+- Essential entities: up to EUR 10,000,000 or 2% of total worldwide annual turnover (whichever is higher)
+
+=============================================================================
+EU GDPR 2016/679 — ARTICLES 33-34: PERSONAL DATA BREACH NOTIFICATION
+=============================================================================
+
+Definition of "personal data breach" (GDPR Art. 4(12)):
+"A breach of security leading to the accidental or unlawful destruction, loss, alteration, unauthorised disclosure of, or access to, personal data transmitted, stored or otherwise processed."
+
+GDPR Article 33 — Notification to supervisory authority:
+DEADLINE: Without undue delay and, where feasible, NOT LATER THAN 72 HOURS after having become aware of the breach.
+This 72-hour deadline is ABSOLUTE. If notification is made after 72 hours, the reasons for the delay must be provided.
+
+Article 33 notification must include (where possible):
+(a) Nature of the personal data breach (categories and approximate number of data subjects affected, categories and approximate number of records concerned)
+(b) Name and contact details of the Data Protection Officer
+(c) Likely consequences of the personal data breach
+(d) Measures taken or proposed to be taken to address the breach, including measures to mitigate possible adverse effects
+
+If all information is not available within 72 hours, initial notification should be made and information provided in phases.
+
+GDPR Article 34 — Communication to data subjects:
+When to notify data subjects: When the breach is likely to result in a HIGH RISK to the rights and freedoms of natural persons.
+DEADLINE: Without undue delay (no specific hour limit, but should be as prompt as possible)
+
+Notification to data subjects NOT required when:
+(a) Appropriate technical and organisational protection measures were implemented (encryption, pseudonymisation)
+(b) The controller has taken subsequent measures ensuring the high risk no longer materialises
+(c) Notification would involve disproportionate effort (public communication acceptable instead)
+
+GDPR Article 33(5) — Record keeping:
+The controller shall document any personal data breaches, comprising the facts relating to the personal data breach, its effects and the remedial action taken.
+
+Applies to law enforcement agencies processing civilian personal data. Note: Law enforcement processing for criminal investigations falls under the EU Law Enforcement Directive (LED) 2016/680, not GDPR.
+
+=============================================================================
+EU LAW ENFORCEMENT DIRECTIVE (LED) 2016/680 — KEY OBLIGATIONS
+=============================================================================
+
+Applicability: Applies specifically to processing of personal data by competent authorities (including LEAs) for the purposes of:
+- Prevention, investigation, detection, or prosecution of criminal offences
+- Execution of criminal penalties
+
+Key obligations relevant to cyber incident response:
+
+Article 29 — Security of processing:
+- Implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk
+- Includes protection against unauthorised or unlawful processing, accidental loss, destruction, or damage
+
+Article 30 — Notification of personal data breach to supervisory authority:
+- Similar structure to GDPR Art. 33 but applies to law enforcement personal data
+- Deadline: Without undue delay (72-hour guidance applies by analogy)
+- Must notify supervisory authority unless breach is unlikely to result in risk to rights and freedoms
+
+Article 31 — Communication to data subject:
+- Notify data subject when breach likely results in high risk to rights and freedoms
+- Subject to restrictions if notification would compromise criminal investigations
+
+Interaction between GDPR and LED in LEA cyber incidents:
+- Personal data of civilians processed for non-law enforcement purposes: GDPR applies
+- Personal data processed in context of criminal investigations: LED applies
+- In practice, a breach may trigger BOTH GDPR and LED notifications depending on which databases are affected
+
+=============================================================================
+BUDAPEST CONVENTION ON CYBERCRIME (ETS 185) — KEY ARTICLES FOR LEGISLATIVE MAPPING
+=============================================================================
+
+The Budapest Convention provides the primary international legal framework for cybercrime criminalisation and cross-border cooperation.
+
+Article 2 — Illegal access:
+Criminalises intentional access to a computer system without right.
+Relevance: Covers all intrusion incidents (successful unauthorised access).
+
+Article 3 — Illegal interception:
+Criminalises intentional interception of non-public computer data transmissions.
+Relevance: Covers network sniffing, man-in-the-middle attacks.
+
+Article 4 — Data interference:
+Criminalises intentional damaging, deletion, deterioration, alteration, or suppression of computer data without right.
+Relevance: Covers ransomware (encryption of data), data destruction, data manipulation.
+
+Article 5 — System interference:
+Criminalises intentional serious hindering of computer system functioning without right.
+Relevance: Covers DoS/DDoS attacks, ransomware-induced system unavailability.
+
+Article 6 — Misuse of devices:
+Criminalises production, sale, or distribution of tools designed for cybercrime.
+Relevance: Covers exploitation frameworks, malware tools, scanning tools used in attacks.
+
+Article 7 — Computer-related forgery:
+Criminalises intentional input, alteration, deletion, or suppression of computer data resulting in inauthentic data with intent to be considered authentic.
+Relevance: Covers credential forgery, digital document manipulation, timestamp alteration.
+
+Article 8 — Computer-related fraud:
+Criminalises intentional causing of loss of property by computer manipulation with fraudulent intent.
+Relevance: Covers BEC fraud, ransomware payments obtained under duress, crypto fraud.
+
+Article 9 — Offences related to child pornography:
+Criminalises production, distribution, and possession of child pornography via computer systems.
+Relevance: Mandatory escalation to Europol EC3 and national authority.
+
+Article 11 — Attempt and aiding or abetting:
+Criminalises attempt to commit any of the above offences, and aiding or abetting.
+Relevance: Covers intrusion attempts (even if unsuccessful), tools used to facilitate attacks.
+
+Article 35 — 24/7 Network:
+Parties must designate a point of contact available 24/7 for expedited assistance in cybercrime investigations.
+Relevance: LEAs must know their national 24/7 point of contact for Budapest Convention mutual legal assistance requests.
+
+=============================================================================
+LEERP — EU LAW ENFORCEMENT EMERGENCY RESPONSE PROTOCOL
+=============================================================================
+
+Source: Council of the European Union, document ST-6527-2025
+Status: EU framework for coordinating law enforcement responses to major cross-border cyber incidents
+
+LEERP Activation Criteria:
+The protocol is activated when a cyber incident meets ALL of the following:
+1. The incident affects or is likely to affect two or more EU Member States
+2. The impact is significant (operational disruption to critical infrastructure or law enforcement capability)
+3. The incident has a confirmed or suspected criminal dimension requiring law enforcement coordination
+
+LEERP Coordination Structure:
+- Lead Coordination Body: Europol EC3 (European Cybercrime Centre)
+- National Points of Contact: Each Member State designates a 24/7 contact point for LEERP activation
+- Communication Channel: SIENA (Secure Information Exchange Network Application)
+- Coordination Meetings: Virtual or physical crisis coordination meetings convened by EC3
+
+LEERP Escalation Levels:
+Level 1 — National Response: Incident handled by national CERT/CSIRT and national LEA without cross-border activation
+Level 2 — LEERP Early Warning: EC3 notified, Member States put on standby
+Level 3 — LEERP Coordination: EC3 actively coordinates multi-country response, SIENA channel activated
+Level 4 — LEERP Crisis: Full activation including EU-level coordination, potential European Council notification
+
+LEERP reporting to Europol EC3:
+- Initial notification: As soon as cross-border or criminal dimension is confirmed or reasonably suspected
+- Via SIENA: All information sharing must use SIENA for security classification
+- Content: Incident description, affected systems, indicators of compromise, jurisdictions affected
+
+LEERP Information Classification:
+All LEERP communications use SIENA classification levels:
+- RESTRICTED: Limited distribution (standard operational information)
+- RESTRICTED: LEA: Law enforcement agencies only
+- SENSITIVE NON-CLASSIFIED: Wider distribution within trusted community
+
+=============================================================================
+EUROPOL REGULATION 2016/794 — OPERATIONAL OBLIGATIONS
+=============================================================================
+
+Article 4 — Objectives:
+Europol supports and strengthens Member States' action and their mutual cooperation in preventing and combating serious crime affecting two or more Member States.
+
+Article 7 — Supply of information by Member States:
+Member States shall supply Europol with information necessary for the achievement of Europol's objectives.
+Relevance for LEAs: When a cyber incident has cross-border criminal dimensions, LEAs MUST share relevant information with Europol.
+
+Article 26 — Processing of personal data:
+Europol may process personal data only for specific purposes and with appropriate safeguards.
+Relevance: Information shared with Europol EC3 during LEERP activation must comply with data minimisation.
+
+=============================================================================
+SUMMARY: MANDATORY DEADLINES FOR LEA CYBER INCIDENT RESPONSE
+=============================================================================
+
+This summary must appear in every SAFE-generated policy under external_reporting_obligations.
+
+| Obligation | Legal Basis | Deadline | Recipient |
+|---|---|---|---|
+| Early warning for significant incident | NIS2 Art. 23(4)(a) | Within 24 HOURS of becoming aware | National CERT/CSIRT |
+| Full incident notification | NIS2 Art. 23(4)(b) | Within 72 HOURS of becoming aware | National CERT/CSIRT |
+| Final incident report | NIS2 Art. 23(4)(d) | Within 1 MONTH of notification | National CERT/CSIRT |
+| Personal data breach (civilian data - GDPR) | GDPR Art. 33 | Within 72 HOURS of becoming aware | National Data Protection Authority |
+| Personal data breach (LED - LE data) | LED Art. 30 | Without undue delay (~72h by analogy) | National supervisory authority |
+| Cross-border criminal incident | LEERP / Europol Reg. 2016/794 | As soon as operationally feasible | Europol EC3 via SIENA |
+| Internal management notification | Organisational policy | [LEA INPUT NEEDED] | Senior Management / DPO |
+| National ministry / oversight body | [LEA INPUT NEEDED — national law] | [LEA INPUT NEEDED] | [LEA INPUT NEEDED] |
+
+CRITICAL RULE: The 72-hour GDPR deadline and the 24-hour NIS2 early warning deadline are ABSOLUTE.
+An AI-generated SOP that states any different deadline for these obligations is INCORRECT.

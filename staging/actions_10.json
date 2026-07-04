@@ -1,0 +1,12 @@
+[
+  "I verified the alert, cross-checked the destination IP against threat intel, and notified the Network Security team.",
+  "I isolated the workstation, took a forensic image, ran an AV scan, and notified the affected user.",
+  "I identified the compromised subnet, ran Nmap to map lateral movement, and updated the SOC ticket.",
+  "I sent an incident briefing to all stakeholders, defined the scope, assigned roles, and scheduled the response meeting.",
+  "I executed the firewall rule to block the affected subnet, verified the cut-off, and notified the affected business units.",
+  "I removed malicious binaries, whitelisted legitimate ones, reset compromised passwords, and ran a full system scan.",
+  "I restored the database from the last clean backup and validated data integrity before bringing it online.",
+  "I drafted the public statement, coordinated with PR, and published it to customers and media.",
+  "I drafted the regulatory notification and submitted it within 72 hours.",
+  "I conducted the lessons learned meeting, updated the incident playbook, and archived all evidence."
+]

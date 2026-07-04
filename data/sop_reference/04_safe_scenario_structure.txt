@@ -1,0 +1,243 @@
+DOCUMENT: SAFE Platform — Scenario and Incident Structure Reference
+SOURCE: SAFE scenario builder internal schema (scenario-builder-llm-main/src/config/models.py)
+PURPOSE: Authoritative structure reference for SAFE scenario generation — defines the exact JSON schema that the LLM must produce
+
+CRITICAL: The LLM must return a JSON object that exactly matches the Scenario schema defined below. Every field name, type, and constraint must be respected. Do NOT invent field names or omit required fields.
+
+=============================================================================
+SAFE SCENARIO DATA MODEL
+=============================================================================
+
+A Scenario consists of:
+- A scenario-level header (title, description, threat metadata)
+- A list of Incident objects (the simulation phases)
+
+Each Incident represents one phase of the attack/response timeline that the trainee must respond to.
+
+=============================================================================
+SCENARIO SCHEMA (TOP-LEVEL OBJECT)
+=============================================================================
+
+{
+  "scenario_title": string,           REQUIRED — Short, specific title (e.g. "APT29 SolarWinds Supply Chain Intrusion")
+  "scenario_description": string,     OPTIONAL — 2-3 sentence overview of the threat and LEA context
+  "threat_actor": string,             OPTIONAL — Threat actor name/group (e.g. "APT29 / NOBELIUM / SVR Russia", "LockBit 3.0", "Unknown Cybercriminal Group")
+  "threat_type": string,              OPTIONAL — Threat category (e.g. "Supply Chain Compromise", "Ransomware", "Spear-Phishing", "Insider Threat")
+  "target_sector": string,            OPTIONAL — Target sector (e.g. "Law Enforcement Agency", "Government", "Critical Infrastructure", "Healthcare")
+  "attack_vector": string,            OPTIONAL — Primary attack vector (e.g. "Trojanized Software Update", "Spear-phishing Email", "Exploitation of VPN Vulnerability")
+  "incidents": [ Incident, ... ]      REQUIRED — List of 4–8 Incident objects (simulation phases)
+}
+
+=============================================================================
+INCIDENT SCHEMA (ONE PHASE OF THE SCENARIO)
+=============================================================================
+
+{
+  "title": string,                    REQUIRED — Phase title (e.g. "Phase 1 — SUNBURST DLL Hash Detected")
+  "message_timestamp": string,        REQUIRED — Time notation (e.g. "T+0", "T+5min", "T+30min", "T+2h", "Day 2 09:00")
+  "description": string,              REQUIRED — What is happening: system alerts, observable indicators, context. 3-6 sentences. Written as a situation report for the trainee.
+  "inject": string,                   OPTIONAL — Specific artefact or technical detail to present to the trainee. Use pipe-separated table format:
+                                                   "Alert Source | EDR Hash Match\nIOC Value | b91ce2fa41029f6955bff20079468448\nSeverity | CRITICAL"
+                                                   OR a realistic log excerpt, email header, command output, or network capture snippet.
+  "expected_actions": [ string, ... ] REQUIRED — List of 3–6 specific actions the trainee SHOULD take. Each action is one concrete step.
+                                                   Written as first-person statements: "Isolate the affected workstation from the network immediately."
+                                                   NOT vague: "Handle the incident." — must be specific and measurable.
+  "attack_technique": string,         OPTIONAL — Primary MITRE ATT&CK technique (e.g. "T1195.002 — Supply Chain Compromise", "T1071.004 — DNS C2")
+  "target_asset": string,             OPTIONAL — Specific system or asset targeted (e.g. "SolarWinds Orion server", "Active Directory Domain Controller", "VPN Gateway")
+  "vulnerability_class": string,      OPTIONAL — Vulnerability or misconfiguration exploited (e.g. "Unpatched CVE-2021-44228", "Weak VPN credentials", "Social engineering via phishing")
+  "estimated_impact": string          OPTIONAL — Operational impact if not contained (e.g. "Full network lateral movement", "Data exfiltration of criminal case files", "Operational disruption of dispatch systems")
+}
+
+=============================================================================
+SCENARIO PHASE STRUCTURE — STANDARD 5-PHASE FORMAT
+=============================================================================
+
+SAFE scenarios follow a 5-phase incident response timeline. Each phase is one Incident object.
+
+Phase 1 — DETECTION (T+0 to T+5min)
+  Purpose: The initial indicator fires. System alerts (EDR, SIEM, IDS) detect the threat.
+  description: Describe the specific alert that triggered: alert source, IOC type, affected system, initial severity.
+  inject: Alert details — IOC value, hash, IP, domain, filename, rule name, SIEM dashboard screenshot description.
+  expected_actions: Acknowledge the alert, review alert details, cross-check IOC against threat intel, document the detection.
+
+Phase 2 — ALERT / TRIAGE (T+5min to T+30min)
+  Purpose: SOC analyst validates the alert and determines if it is a true positive.
+  description: Describe what the analyst finds during initial triage: additional indicators, affected host details, threat actor context.
+  inject: Enriched alert data — MITRE technique tags, threat actor attribution, correlated IOCs.
+  expected_actions: Confirm the threat is real, identify affected systems, check asset criticality, escalate to SOC Lead.
+
+Phase 3 — INVESTIGATION (T+30min to T+60min)
+  Purpose: Deep investigation — scope the incident, understand the attack chain.
+  description: Describe what the analyst discovers: lateral movement evidence, exfiltrated data signs, C2 traffic, persistence mechanisms.
+  inject: Forensic artefacts — log excerpts, network traffic captures, file system artefacts, registry entries.
+  expected_actions: Map the attack chain, identify all affected systems, preserve forensic evidence, check for data exfiltration.
+
+Phase 4 — CONTAINMENT (T+60min to T+2h)
+  Purpose: Stop the spread. Isolate affected systems. Activate the Cyber Incident Response Team (CIRT).
+  description: Describe the containment actions required and the escalation decisions needed.
+  inject: Scope summary — list of affected hosts, network segments at risk, cloud services involved.
+  expected_actions: Isolate affected systems, block C2 IPs/domains, revoke compromised credentials, activate CIRT, notify senior management.
+
+Phase 5 — ESCALATION & REPORTING (T+2h onwards)
+  Purpose: External reporting obligations, legal notifications, lessons learned.
+  description: Describe the regulatory and legal notification requirements triggered by the incident.
+  inject: Regulatory checklist — GDPR Art.33 72h deadline, NIS2 Art.23 24h CERT notification, Europol EC3 notification if applicable.
+  expected_actions: Notify Data Protection Officer, submit CERT early warning, assess GDPR personal data breach obligation, document incident timeline for regulatory submission.
+
+=============================================================================
+EXPECTED_ACTIONS — QUALITY STANDARDS
+=============================================================================
+
+Each expected_action must be:
+
+1. SPECIFIC — Name the exact tool, system, or file: "Check DNS logs for queries from SRV-ORION-01 to *.avsvmcloud.com" NOT "Check logs"
+2. ACTIONABLE — Start with a verb: "Isolate", "Block", "Notify", "Review", "Verify", "Document", "Escalate", "Hash"
+3. MEASURABLE — Trainee can confirm they did it or not
+4. LEA-APPROPRIATE — Actions relevant to a law enforcement cybersecurity analyst (not just generic IT)
+5. ORDERED — Actions should be in the logical sequence a real analyst would follow
+
+BAD examples (too vague):
+- "Respond to the incident"
+- "Handle the threat"
+- "Take appropriate action"
+
+GOOD examples (specific and actionable):
+- "Isolate the affected endpoint from the network using the EDR console — do NOT power it off (preserve volatile memory)"
+- "Query DNS logs for all outbound connections from the affected host to *.avsvmcloud.com over the past 14 days"
+- "Notify the Data Protection Officer within 1 hour of confirming personal data may have been accessed (GDPR Art.33 preparation)"
+- "Acquire a full RAM memory dump of the affected server using WinPmem before any remediation action"
+- "Document the SHA-256 hash of all recovered malicious files and add them to the incident case file"
+
+=============================================================================
+INJECT FORMAT — TECHNICAL ARTEFACT STANDARDS
+=============================================================================
+
+The inject field provides the specific technical artefact for the trainee to work with. It can be:
+
+FORMAT 1: Alert Table (most common for detection phases)
+  Alert Source | EDR — Hash Match
+  IOC Type     | file_hash (MD5)
+  IOC Value    | b91ce2fa41029f6955bff20079468448
+  Filename     | SolarWinds.Orion.Core.BusinessLayer.dll
+  Severity     | CRITICAL
+
+FORMAT 2: Log excerpt (investigation phases)
+  2024-05-06 03:14:22 UTC | DNS | SRV-ORION-01 (10.10.5.22) | QUERY r8swhqn7yz0a8.appsync-api.us-east-2.avsvmcloud.com | RESPONSE sinkhole.microsoft.com
+
+FORMAT 3: Email header (phishing scenarios)
+  From: it-support@company-helpdesk.net
+  To: officer.smith@lea.gov.gr
+  Subject: URGENT: Password expiry — reset required within 24 hours
+  X-Originating-IP: 185.220.101.47 (TOR exit node)
+
+FORMAT 4: Command output (forensic phases)
+  > Get-AuthenticodeSignature "C:\Program Files (x86)\SolarWinds\Orion\SolarWinds.Orion.Core.BusinessLayer.dll"
+  Status: Valid
+  SignerCertificate: SolarWinds Corporation (EXPIRED — revoked 2021-01-21)
+
+FORMAT 5: Regulatory checklist (reporting phases)
+  [ ] GDPR Art.33: Personal data breach notification to DPA within 72 hours
+  [ ] NIS2 Art.23: Early warning to national CERT/CSIRT within 24 hours
+  [ ] Internal: Notify CISO and Senior Management immediately
+  [ ] Europol EC3: Notify if criminal infrastructure is involved
+
+=============================================================================
+ATTACK_TECHNIQUE — MITRE ATT&CK REFERENCE
+=============================================================================
+
+Use the following format: "T{ID} — {Name}"
+
+Common techniques relevant to LEA scenarios:
+- T1195.002 — Supply Chain Compromise (software update)
+- T1078 — Valid Accounts (credential abuse)
+- T1566.001 — Phishing: Spearphishing Attachment
+- T1071.004 — Application Layer Protocol: DNS (C2 via DNS)
+- T1071.001 — Application Layer Protocol: Web Protocols (C2 via HTTP/S)
+- T1486 — Data Encrypted for Impact (ransomware)
+- T1003.001 — OS Credential Dumping: LSASS Memory
+- T1003.006 — OS Credential Dumping: DCSync
+- T1606.002 — Forge Web Credentials: SAML Tokens (Golden SAML)
+- T1098.001 — Account Manipulation: Azure AD (cloud persistence)
+- T1562.001 — Impair Defenses: Disable or Modify Tools
+- T1070.004 — Indicator Removal: File Deletion
+- T1560.001 — Archive Collected Data: Archive via Utility
+- T1114.002 — Email Collection: Remote Email Collection
+- T1036.005 — Masquerading: Match Legitimate Name or Location
+- T1553.002 — Subvert Trust Controls: Code Signing
+- T1027 — Obfuscated Files or Information
+
+=============================================================================
+COMPLETE EXAMPLE — SAFE SCENARIO JSON
+=============================================================================
+
+{
+  "scenario_title": "APT29 SUNBURST Supply Chain Intrusion — SolarWinds Orion",
+  "scenario_description": "APT29 (NOBELIUM/SVR Russia) compromised the SolarWinds Orion build process and injected the SUNBURST backdoor into a digitally-signed DLL update. The LEA's SolarWinds Orion server installed the malicious update and began C2 beaconing to avsvmcloud.com. The incident requires detection, forensic investigation, containment, and regulatory notification.",
+  "threat_actor": "APT29 / NOBELIUM / SVR Russia",
+  "threat_type": "Supply Chain Compromise",
+  "target_sector": "Law Enforcement Agency",
+  "attack_vector": "Trojanized SolarWinds Orion software update (DLL injection)",
+  "incidents": [
+    {
+      "title": "Phase 1 — SUNBURST DLL Hash Detected by EDR",
+      "message_timestamp": "T+0",
+      "description": "The EDR platform has flagged a critical hash match on SRV-ORION-01. The file SolarWinds.Orion.Core.BusinessLayer.dll matches the known SUNBURST backdoor IOC from the APT29 threat feed. The file carries a valid SolarWinds digital certificate. The SolarWinds Orion process is currently running on the server and the DLL is loaded in memory. Quarantine has been blocked because the file is in active use.",
+      "inject": "Alert Source | EDR — Hash Match (IOC Feed)\nIOC Type     | file_hash (MD5)\nIOC Value    | b91ce2fa41029f6955bff20079468448\nFilename     | SolarWinds.Orion.Core.BusinessLayer.dll\nFile Path    | C:\\Program Files (x86)\\SolarWinds\\Orion\\\nSeverity     | CRITICAL\nHost         | SRV-ORION-01",
+      "expected_actions": [
+        "Acknowledge the CRITICAL EDR alert within 5 minutes — confirm it is assigned to a Tier 2 analyst",
+        "Open the EDR console and review the full alert details: file path, hash value, process name, and user context",
+        "Cross-check the MD5 hash b91ce2fa41029f6955bff20079468448 against a second independent threat intelligence source (VirusTotal, CISA IOC list)",
+        "Confirm the file path matches the expected SolarWinds Orion installation directory — rule out file path spoofing",
+        "Check whether SolarWinds.BusinessLayerHost.exe is currently running and record the PID",
+        "Immediately escalate to SOC Lead — activate P1 nation-state incident protocol"
+      ],
+      "attack_technique": "T1195.002 — Supply Chain Compromise: Compromise Software Supply Chain",
+      "target_asset": "SolarWinds Orion server (SRV-ORION-01)",
+      "vulnerability_class": "Trojanized digitally-signed software update",
+      "estimated_impact": "Full network backdoor — potential Golden SAML and lateral movement across all systems managed by SolarWinds Orion"
+    },
+    {
+      "title": "Phase 2 — SIEM Correlation Confirms APT29 Attribution",
+      "message_timestamp": "T+5min",
+      "description": "The SIEM has correlated both the MD5 and SHA-256 hashes and attributed the activity to APT29/NOBELIUM/SVR Russia with 100% confidence. MITRE ATT&CK tags T1195.002 and T1553.002 have been applied. An automated DNS block for *.avsvmcloud.com has been triggered via the firewall API. A P1 incident case has been created with all correlated events. The SOC Lead has been notified and the IR war room protocol is being activated.",
+      "inject": "SIEM Rule: APT29_NOBELIUM_SUNBURST_IOC_MATCH\nThreat Actor: APT29 / NOBELIUM / SVR Russia\nCampaign: SolarWinds Compromise (MITRE C0024)\nMalware: SUNBURST (Solorigate)\nMITRE Techniques: T1195.002 · T1553.002 · T1562.001 · T1027\nAttribution Confidence: 100%\nDNS Block Applied: *.avsvmcloud.com",
+      "expected_actions": [
+        "Confirm threat actor attribution — read MITRE ATT&CK Campaign C0024 page to understand the full attack chain",
+        "Verify the DNS block for *.avsvmcloud.com was successfully applied — check firewall policy and confirm no active outbound queries remain",
+        "Identify all SolarWinds Orion servers in the environment with version 2020.2.0 — each is a potential SUNBURST host",
+        "Open CISA Emergency Directive 21-01 and identify mandatory response requirements",
+        "Document the confirmed IOC match, attribution, and initial scope in the incident case with timestamps",
+        "Assign the incident to the Threat Response team — activate the full IR plan for nation-state intrusion"
+      ],
+      "attack_technique": "T1553.002 — Subvert Trust Controls: Code Signing",
+      "target_asset": "SolarWinds Orion server fleet",
+      "vulnerability_class": "Supply chain: trusted software update package abused",
+      "estimated_impact": "All SolarWinds Orion-managed systems are potentially backdoored — scope of compromise unknown"
+    }
+  ]
+}
+
+=============================================================================
+GENERATION GUIDELINES — SAFE SCENARIO QUALITY STANDARDS
+=============================================================================
+
+1. REALISTIC TIMELINE: Each phase timestamp must be plausible for a real IR (T+0, T+5min, T+30min, T+1h, T+2h)
+
+2. LEA CONTEXT: Scenarios must be grounded in law enforcement operations:
+   - Reference criminal intelligence systems, evidence databases, dispatch systems
+   - Include regulatory obligations (GDPR, NIS2, Europol notification)
+   - Reference LEA-specific roles: SOC Lead, CISO, DPO, Legal, Europol liaison
+
+3. SPECIFICITY: Inject fields must have real-looking technical values:
+   - Actual-looking IP addresses (internal: 10.x.x.x, external: realistic range)
+   - Realistic hostnames: SRV-DC01, WS-ANALYST-03, GW-VPN-01
+   - Plausible log timestamps in ISO format
+   - Specific tool names: EDR, SIEM, WinPmem, FTK Imager, Sysinternals
+
+4. EXPECTED_ACTIONS SPECIFICITY: Each action must specify WHAT to do, WHERE, and HOW
+
+5. EVIDENCE PRESERVATION: At least one phase must include evidence preservation actions (memory dump, forensic image, chain of custody)
+
+6. ESCALATION: The final phase must include regulatory notification steps (GDPR Art.33, NIS2 Art.23, Europol if applicable)
+
+7. CONSISTENT METADATA: attack_technique, target_asset, vulnerability_class, estimated_impact must be consistent across all phases of the same scenario
