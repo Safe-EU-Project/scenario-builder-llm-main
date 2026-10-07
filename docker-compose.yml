@@ -63,11 +63,10 @@ services:
       - MAX_TOP_K=20
       - RETRIEVAL_ALPHA=0.7
 
-      # LLM configuration (adjust to your LLM service)
-      # For LLM on another machine, use the IP address or hostname:
-      - LLM_API_URL=http://10.240.138.254:11434/v1/chat/completions
-      # - LLM_API_URL=http://host.docker.internal:11434/v1/chat/completions
-      - LLM_MODEL=chat:gpt-oss
+      # LLM configuration — use SAFE gap-enrichment Ollama (:11435).
+      # Host :11434 model chat:gpt-oss is broken (GGUF tensor overflow).
+      - LLM_API_URL=http://10.240.138.254:11435/v1/chat/completions
+      - LLM_MODEL=gpt-oss:20b
       - LLM_TEMPERATURE=0.7
       - LLM_SEED=42
       - LLM_STREAM=false

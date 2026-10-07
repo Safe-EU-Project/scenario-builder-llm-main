@@ -85,6 +85,10 @@ class Settings:
     llm_temperature: float = _env_float("LLM_TEMPERATURE", 0.7)
     llm_seed: int = _env_int("LLM_SEED", 42)
     llm_stream: bool = _env_bool("LLM_STREAM", False)
+    # -1 tells Ollama to keep the model loaded until the Ollama process restarts.
+    llm_keep_alive: int = _env_int("LLM_KEEP_ALIVE", -1)
+    # Touch the model before Ollama's default 5-minute idle unload.
+    llm_warmup_interval_seconds: int = _env_int("LLM_WARMUP_INTERVAL_SECONDS", 180)
 
     def get_embedding_config(self) -> Dict[str, Any]:
         """Get embedding configuration as dictionary"""
@@ -121,6 +125,8 @@ class Settings:
             "temperature": self.llm_temperature,
             "seed": self.llm_seed,
             "stream": self.llm_stream,
+            "keep_alive": self.llm_keep_alive,
+            "warmup_interval_seconds": self.llm_warmup_interval_seconds,
         }
 
 

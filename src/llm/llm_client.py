@@ -3,7 +3,9 @@ LLM client for generating answers based on retrieved context.
 """
 
 import json
+import time
 from typing import Dict, List, Type, TypeVar
+from urllib.parse import urlparse
 
 import requests
 import structlog
@@ -48,6 +50,7 @@ class LLMClient:
         self.temperature = temperature if temperature is not None else settings.llm_temperature
         self.seed = seed if seed is not None else settings.llm_seed
         self.stream = stream if stream is not None else settings.llm_stream
+        self.keep_alive = settings.llm_keep_alive
 
         # Initialize OpenAI client for structured output
         # Extract base URL properly: http://host:port/v1/chat/completions -> http://host:port/v1
@@ -66,6 +69,44 @@ class LLMClient:
             api_url=self.api_url,
             model=self.model,
             temperature=self.temperature,
+            keep_alive=self.keep_alive,
+        )
+
+    def _ollama_origin(self) -> str:
+        """http://host:11435/v1/chat/completions -> http://host:11435"""
+        parsed = urlparse(self.api_url)
+        return f"{parsed.scheme}://{parsed.netloc}"
+
+    def is_model_loaded(self) -> bool:
+        """True when Ollama already has this model in memory."""
+        url = f"{self._ollama_origin()}/api/ps"
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        wanted = self.model.strip()
+        for item in response.json().get("models") or []:
+            loaded = (item.get("model") or item.get("name") or "").strip()
+            if loaded == wanted or loaded.startswith(wanted + ":"):
+                return True
+        return False
+
+    def warmup(self) -> None:
+        """Load the model and pin it in memory with a one-token generate."""
+        url = f"{self._ollama_origin()}/api/generate"
+        payload = {
+            "model": self.model,
+            "prompt": "ok",
+            "stream": False,
+            "keep_alive": self.keep_alive,
+            "options": {"num_predict": 1, "temperature": 0},
+        }
+        started = time.perf_counter()
+        response = requests.post(url, json=payload, timeout=180)
+        response.raise_for_status()
+        log.info(
+            "llm_warmup_ok",
+            model=self.model,
+            elapsed_s=round(time.perf_counter() - started, 1),
+            keep_alive=self.keep_alive,
         )
 
     def generate_answer(self, query: str, context: str, system_prompt: str = None) -> str:
@@ -170,6 +211,38 @@ class LLMClient:
             )
             raise
 
+    def iter_structured_content(
+        self, query: str, context: str, response_model: Type[T], system_prompt: str = None
+    ):
+        """Yield content tokens for a structured response, same schema as generate_structured_answer."""
+        system_content = (
+            system_prompt if system_prompt else self._get_structured_incident_system_prompt()
+        )
+        system_content += f"\n\n---\n\nContext:\n{context}"
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": query},
+        ]
+        schema = response_model.model_json_schema()
+        stream = self.openai_client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=self.temperature,
+            stream=True,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {"name": response_model.__name__, "schema": schema},
+            },
+            extra_body={"keep_alive": self.keep_alive},
+        )
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            delta = chunk.choices[0].delta
+            text = getattr(delta, "content", None) if delta else None
+            if text:
+                yield text
+
     def _call_llm(self, messages: List[Dict[str, str]]) -> str:
         """
         Call the OpenAI-compatible LLM API (/v1/chat/completions endpoint).
@@ -187,6 +260,7 @@ class LLMClient:
             "temperature": self.temperature,
             "seed": self.seed,
             "stream": self.stream,
+            "keep_alive": self.keep_alive,
         }
 
         log.debug("llm_request", payload=json.dumps(payload, indent=2))
@@ -254,6 +328,7 @@ class LLMClient:
                 messages=messages,
                 response_format=response_model,
                 temperature=self.temperature,
+                extra_body={"keep_alive": self.keep_alive},
             )
 
             message = completion.choices[0].message

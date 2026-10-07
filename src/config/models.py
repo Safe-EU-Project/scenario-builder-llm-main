@@ -376,8 +376,8 @@ class TraineeIncidentView(BaseModel):
     inject: Optional[str] = Field(None, description="Inject / artefact text")
 
 
-class NextStepLLMResult(BaseModel):
-    """Structured LLM output: must pick one incident index from the eligible set (validated server-side)."""
+class NextStepLLMCore(BaseModel):
+    """Structured LLM output without exploit_path. Used when include_exploit_path is false."""
 
     chosen_incident_index: int = Field(..., description="Index of the next incident to show (0-based)")
     rationale: str = Field(
@@ -404,6 +404,11 @@ class NextStepLLMResult(BaseModel):
             "1 sentence max. Null if scenario is nearly complete."
         ),
     )
+
+
+class NextStepLLMResult(NextStepLLMCore):
+    """Full next-step output, including exploit_path. Used when include_exploit_path is true."""
+
     exploit_path: Optional[ExploitPath] = Field(
         None,
         description=(
@@ -440,6 +445,15 @@ class NextStepRequest(BaseModel):
             "If true, rewrite description+inject of the chosen incident so it acknowledges "
             "the trainee's real action and focuses on what still needs to be done. "
             "Requires use_llm=true; ignored otherwise."
+        ),
+    )
+    include_exploit_path: bool = Field(
+        False,
+        description=(
+            "If true, the next-step LLM also writes a full exploit_path "
+            "(foothold, CVE, technique, IOCs, containment window). "
+            "Closed by default so the exercise response stays short. "
+            "Ignored when use_llm is false."
         ),
     )
     history_summary: Optional[str] = Field(
@@ -548,7 +562,7 @@ class NextStepResponse(BaseModel):
             "Structured exploitation path the attacker will use to reach the chosen next incident. "
             "Contains foothold, vulnerability exploited, lateral movement technique, pivot target, "
             "new capability, containment window, and detection indicators. "
-            "Present whenever use_llm=true and scenario is not complete."
+            "Present only when include_exploit_path=true, use_llm=true, and the scenario is not complete."
         ),
     )
 

@@ -2,13 +2,16 @@
 FastAPI application for Scenario Builder Service.
 """
 
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime
+import json
 from typing import Optional
 
 import structlog
 from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 from ..config.models import (
     AdaptLLMResult,
@@ -26,6 +29,7 @@ from ..config.models import (
     IdentifiedRisk,
     IngestScenarioRequest,
     IngestScenarioResponse,
+    NextStepLLMCore,
     NextStepLLMResult,
     NextStepRequest,
     NextStepResponse,
@@ -49,7 +53,7 @@ from ..processing.processors import DocumentProcessor, detect_sector
 from ..retrieval.retrieval import RetrievalSystem
 from ..scenario.next_step import (
     ADAPT_INJECT_SYSTEM_PROMPT,
-    NEXT_STEP_SYSTEM_PROMPT,
+    next_step_system_prompt,
     apply_adapt_result,
     build_adapt_user_message,
     build_next_step_user_message,
@@ -114,15 +118,30 @@ retrieval_system: Optional[RetrievalSystem] = None
 llm_client: Optional[LLMClient] = None
 
 
+async def _llm_warmup_loop() -> None:
+    """Load the model at startup and touch it before Ollama can unload it."""
+    interval = max(30, settings.llm_warmup_interval_seconds)
+    while True:
+        if llm_client is not None:
+            try:
+                await asyncio.to_thread(llm_client.warmup)
+            except Exception as exc:
+                log.warning("llm_warmup_failed", error=str(exc))
+        await asyncio.sleep(interval)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan management"""
     # Startup
     log.info("starting_scenario_builder_service", version="1.0.0")
     await initialize_services()
-    yield
-    # Shutdown
-    log.info("shutting_down_scenario_builder_service")
+    warmup_task = asyncio.create_task(_llm_warmup_loop())
+    try:
+        yield
+    finally:
+        warmup_task.cancel()
+        log.info("shutting_down_scenario_builder_service")
 
 
 app = FastAPI(
@@ -198,6 +217,26 @@ async def initialize_services():
     except Exception as e:
         log.error("service_initialization_failed", error=str(e))
         raise
+
+
+@api_v1.post("/warmup")
+async def warmup_model():
+    """Wake the model when an exercise starts, unless it is already loaded."""
+    if not llm_client:
+        raise HTTPException(status_code=500, detail="LLM client not initialized")
+
+    try:
+        already_loaded = await asyncio.to_thread(llm_client.is_model_loaded)
+    except Exception as exc:
+        log.warning("llm_warmup_status_failed", error=str(exc))
+        already_loaded = False
+
+    if already_loaded:
+        log.info("llm_warmup_skipped", model=llm_client.model, reason="already_loaded")
+        return {"warmed": False, "already_loaded": True, "model": llm_client.model}
+
+    asyncio.create_task(asyncio.to_thread(llm_client.warmup))
+    return {"warmed": True, "already_loaded": False, "model": llm_client.model}
 
 
 # Health endpoint
@@ -526,6 +565,9 @@ async def next_training_step(request: NextStepRequest):
 
     Set ``adapt_inject=true`` (requires ``use_llm=true``) to rewrite description+inject
     so they acknowledge what the trainee already did and surface what still needs to be done.
+
+    ``include_exploit_path`` defaults to false. When false the LLM schema omits exploit_path
+    so the call stays short. Set it true to also generate the exploitation path.
     """
     try:
         if not llm_client:
@@ -553,6 +595,7 @@ async def next_training_step(request: NextStepRequest):
         rationale: Optional[str] = None
         used_fallback = False
         parsed: Optional[NextStepLLMResult] = None
+        include_exploit_path = bool(request.use_llm and request.include_exploit_path)
 
         # --- Step 1: choose which incident index comes next ---
         if not request.use_llm:
@@ -574,8 +617,8 @@ async def next_training_step(request: NextStepRequest):
                 parsed = llm_client.generate_structured_answer(
                     query=user_msg,
                     context="",
-                    response_model=NextStepLLMResult,
-                    system_prompt=NEXT_STEP_SYSTEM_PROMPT,
+                    response_model=NextStepLLMResult if include_exploit_path else NextStepLLMCore,
+                    system_prompt=next_step_system_prompt(include_exploit_path),
                 )
                 if parsed.chosen_incident_index not in eligible:
                     log.warning(
@@ -631,7 +674,11 @@ async def next_training_step(request: NextStepRequest):
             inject_adapted=inject_adapted,
             predicted_threat_vector=parsed.predicted_threat_vector if (parsed and not used_fallback) else None,
             predicted_impact=parsed.predicted_impact if (parsed and not used_fallback) else None,
-            exploit_path=parsed.exploit_path if (parsed and not used_fallback) else None,
+            exploit_path=(
+                parsed.exploit_path
+                if include_exploit_path and parsed is not None and not used_fallback
+                else None
+            ),
         )
 
     except HTTPException:
@@ -754,6 +801,99 @@ async def analyze_exploit_path(request: ExploitPathRequest):
     except Exception as e:
         log.error("exploit_path_endpoint_error", error=str(e))
         raise HTTPException(status_code=500, detail=f"exploit_path analysis failed: {str(e)}")
+
+
+def _partial_json_string(buffer: str, key: str) -> Optional[str]:
+    """Return the decoded value of a JSON string field, including while the closing quote is still missing."""
+    needle = f'"{key}"'
+    idx = buffer.find(needle)
+    if idx < 0:
+        return None
+    i = idx + len(needle)
+    while i < len(buffer) and buffer[i] in " \n\r\t":
+        i += 1
+    if i >= len(buffer) or buffer[i] != ":":
+        return None
+    i += 1
+    while i < len(buffer) and buffer[i] in " \n\r\t":
+        i += 1
+    if i >= len(buffer):
+        return ""
+    if buffer[i] != '"':
+        return None
+    i += 1
+    out = []
+    escapes = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\"}
+    while i < len(buffer):
+        ch = buffer[i]
+        if ch == "\\":
+            if i + 1 >= len(buffer):
+                break
+            out.append(escapes.get(buffer[i + 1], buffer[i + 1]))
+            i += 2
+            continue
+        if ch == '"':
+            return "".join(out)
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def _grade_step_events(request: GradeRequest):
+    user_msg = build_grade_user_message(
+        scenario_title=request.scenario_title,
+        incident_title=request.incident_title,
+        expected_actions=request.expected_actions,
+        user_action=request.user_action,
+    )
+    raw = ""
+    last_feedback = None
+    try:
+        for token in llm_client.iter_structured_content(
+            query=user_msg,
+            context="",
+            response_model=GradeLLMResult,
+            system_prompt=GRADE_SYSTEM_PROMPT,
+        ):
+            raw += token
+            feedback = _partial_json_string(raw, "feedback")
+            if feedback is not None and feedback != last_feedback:
+                last_feedback = feedback
+                yield f"data: {json.dumps({'feedback': feedback})}\n\n"
+        start = raw.find("{")
+        end = raw.rfind("}")
+        if start < 0 or end < start:
+            raise ValueError("LLM stream did not return JSON")
+        result = GradeLLMResult.model_validate_json(raw[start : end + 1])
+        payload = GradeResponse(
+            score=result.score,
+            level=result.level,
+            feedback=result.feedback,
+            matched_actions=result.matched_actions,
+            missed_actions=result.missed_actions,
+            used_fallback=False,
+        ).model_dump()
+        yield f"data: {json.dumps({'done': True, 'grade': payload})}\n\n"
+    except Exception as exc:
+        log.warning("grade_step_stream_failed", error=str(exc))
+        yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+
+@api_v1.post("/grade_step_stream")
+async def grade_step_stream(request: GradeRequest):
+    """Stream the grade feedback as the model writes it, then send the finished grade."""
+    if not llm_client:
+        raise HTTPException(status_code=500, detail="LLM client not initialized")
+    if not request.expected_actions:
+        raise HTTPException(status_code=400, detail="expected_actions must not be empty")
+    return StreamingResponse(
+        _grade_step_events(request),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 # Grade step endpoint

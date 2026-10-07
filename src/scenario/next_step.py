@@ -73,7 +73,7 @@ def summarize_incidents_for_prompt(scenario: Scenario, indices: List[int], max_c
     return text
 
 
-NEXT_STEP_SYSTEM_PROMPT = """You are a crisis-training simulation director choosing the next incident in a live tabletop exercise AND explaining the attacker's exploitation path to reach it.
+NEXT_STEP_SYSTEM_PROMPT = """You are a crisis-training simulation director choosing the next incident in a live tabletop exercise.
 
 ═══ HARD RULES ═══
 
@@ -98,8 +98,10 @@ NEXT_STEP_SYSTEM_PROMPT = """You are a crisis-training simulation director choos
    Set to null only if this is the last step.
 
 7. predicted_impact: predict in 1 sentence the operational impact if the trainee fails to contain this step.
-   Be concrete (e.g. "ransomware spreads to backup servers within 30 minutes"). Set to null only if last step.
+   Be concrete (e.g. "ransomware spreads to backup servers within 30 minutes"). Set to null only if last step."""
 
+
+NEXT_STEP_EXPLOIT_PATH_PROMPT = """
 ═══ EXPLOIT PATH — REQUIRED UNLESS SCENARIO IS COMPLETE ═══
 
 8. exploit_path: Populate this structured object to explain HOW the attacker moves from the current
@@ -147,6 +149,13 @@ NEXT_STEP_SYSTEM_PROMPT = """You are a crisis-training simulation director choos
                  "SIEM correlation: successful logon 30s after failed MFA attempt"]
 
    Set exploit_path to null ONLY if is_scenario_complete would be true (no next step exists)."""
+
+
+def next_step_system_prompt(include_exploit_path: bool) -> str:
+    """Full prompt only when the caller asked for exploit_path. Otherwise the model fills a short schema."""
+    if not include_exploit_path:
+        return NEXT_STEP_SYSTEM_PROMPT
+    return f"{NEXT_STEP_SYSTEM_PROMPT}\n{NEXT_STEP_EXPLOIT_PATH_PROMPT}"
 
 
 def build_visited_summary(scenario: "Scenario", visited: List[int], current: int) -> str:
