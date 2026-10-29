@@ -713,10 +713,16 @@ class EscalationLevel(BaseModel):
     notify: str = Field(..., description="Role or external body to notify; use '[LEA INPUT NEEDED]' where org-specific")
     timeframe: str = Field(..., description="Maximum time allowed, e.g. 'Immediately', 'Within 30 minutes', 'Within 24 hours'")
 
-    @field_validator("level")
+    @field_validator("level", mode="before")
     @classmethod
-    def validate_level(cls, v: str) -> str:
-        stripped = v.strip().upper()
+    def validate_level(cls, v) -> str:
+        stripped = str(v).strip().upper()
+        # The model sometimes writes 1 / "1" / "Level 1" for "L1"; normalise it instead of
+        # failing validation, which would throw away the whole draft for the static fallback.
+        if stripped.startswith("LEVEL"):
+            stripped = "L" + stripped[len("LEVEL"):].strip()
+        elif stripped.isdigit():
+            stripped = "L" + stripped
         if not stripped.startswith("L"):
             raise ValueError(f"Escalation level must start with 'L' (e.g. L1, L2), got: {v!r}")
         return stripped
